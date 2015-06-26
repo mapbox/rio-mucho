@@ -7,7 +7,7 @@ with codecs_open('README.rst', encoding='utf-8') as f:
     long_description = f.read()
 
 
-setup(name='pyskel',
+setup(name='rio-mucho',
       version='0.0.1',
       description=u"Parallel processing wrapper for rasterio",
       long_description=long_description,
@@ -15,14 +15,15 @@ setup(name='pyskel',
       keywords='',
       author=u"Damon Burgett",
       author_email='damon@mapbox.com',
-      url='https://github.com/mapbox/pyskel',
+      url='https://github.com/mapbox/rio-mucho',
       license='MIT',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
       install_requires=[
           'click',
-          'rasterio'
+          'rasterio',
+          'numpy',
       ],
       extras_require={
           'test': ['pytest'],

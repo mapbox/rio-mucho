@@ -3,7 +3,7 @@ Parallel processing wrapper for rasterio
 
 ## Usage
 
-1. Define a function to be applied to each window chunk. This should arguments of:
+1. Define a function to be applied to each window chunk. This should have input arguments of:
  - An array of of open files
  - A `rasterio` window tuple
  - A `rasterio` window index (`ij`)
