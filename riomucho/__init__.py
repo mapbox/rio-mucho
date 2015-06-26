@@ -22,7 +22,7 @@ def main_worker(inpaths, g_work_func, g_args):
     except:
         return 
  
-def openRead(args):
+def manualRead(args):
     window, ij = args
     return work_func(srcs, window, ij, global_args), window
 
@@ -57,10 +57,10 @@ class RioMucho:
         else:
             self.global_args = kwargs['global_args']
 
-        if not 'simple_read' in kwargs:
-            self.simple_read = False
+        if not 'manual_read' in kwargs:
+            self.manual_read = False
         else:
-            self.simple_read = True
+            self.manual_read = True
 
         self.outpath = outpath
         self.run_function = run_function
@@ -76,10 +76,10 @@ class RioMucho:
         ##shh
         self.kwargs['transform'] = self.kwargs['affine']
 
-        if self.simple_read:
-            reader_worker = simpleRead
+        if self.manual_read:
+            reader_worker = manualRead
         else:
-            reader_worker = openRead
+            reader_worker = simpleRead
 
         ## Open an output file, work through the function in parallel, and write out the data
         with rio.open(self.outpath, 'w', **self.kwargs) as dst:   

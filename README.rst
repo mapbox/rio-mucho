@@ -9,18 +9,31 @@ Usage
 1. Define a function to be applied to each window chunk. This should
    have input arguments of:
 
--  An array of of open files
+-  A list of numpy arrays (one for each file as specified in input file
+   list) of shape ``({bands}, {window rows}, {window cols})``
 -  A ``rasterio`` window tuple
 -  A ``rasterio`` window index (``ij``)
--  A global arg object that you can hold global args in
+-  A global arguments object that you can use to pass in global
+   arguments
 
-   .. code:: python
+\`\`\`python def basic\_run(data, window, ij, g\_args): return data[0]
 
-       def basic_run(open_files, window, ij, g_args):
-       return numpy.array([f.read(window=window)[0] for f in open_files]) / g_args['divide']
+2. Alternatively, for more flexibility, you can use a "manual read"
+   where you read each raster in this function. This is useful if you
+   want to read / write different window sizes (eg for pansharpening, or
+   buffered window reading). Here, instead of a list of arrays, the
+   function is passed an array of rasters open for reading.
 
-2. Make some windows, get or make some keyword args for writing, and
-   pass these and the above function into ``riomucho``: \`\`\`python
+.. code:: python
+
+    def basic_run(open_files, window, ij, g_args):
+        return numpy.array([f.read(window=window)[0] for f in open_files]) / g_args['divide']
+
+For both of these, an array of identical shape to the destination window
+should be returned.
+
+3. To run, make some windows, get or make some keyword args for writing,
+   and pass these and the above function into ``riomucho``: \`\`\`python
    import riomucho, rasterio, numpy
 
 get windows from an input
@@ -45,14 +58,4 @@ kwargs=kwargs) as rm:
 
     rm.run(processes)
 
-::
-
-    FYI
-
-| ,--. ,------. ,--. ,--.
-| \| \|,--,--, \| .-.   ,---.,--. ,--.,---. \| \| ,---. ,---. ,--,--,--.
-  ,---. ,--,--, ,-' '-. \| \|\| \| \|   :\| .-. : 
-  ``'  /| .-. :|  || .-. || .-. ||        || .-. :|      \'-.  .-'  |  ||  ||  ||  '--'  /\   --. \    / \   --.|  |' '-' '| '-' '|  |  |  |\   --.|  ||  |  |  |``--'``--''--'``-------'
-  ``----'``--' ``----'``--' ``---' |  |-'``--``--``--' ``----'``--''--'
-  ``--'``--'
-| \`\`\`
+\`\`\`

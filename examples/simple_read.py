@@ -14,7 +14,6 @@ with riomucho.RioMucho(
     ['/tmp/test_1.tif'],
     '/tmp/test_z_out.tif',
     read_function,
-    global_args={}, 
-    simple_read=True) as rm:
+    global_args={}) as rm:
 
     rm.run(4)
