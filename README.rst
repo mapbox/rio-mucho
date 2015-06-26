@@ -3,7 +3,7 @@ rio-mucho
 
 Parallel processing wrapper for rasterio
 
-|Build Status|
+|Build Status|\ |Coverage Status|
 
 Usage
 -----
@@ -70,3 +70,5 @@ args are specified, an empty object is passed.
 
 .. |Build Status| image:: https://travis-ci.org/mapbox/rio-mucho.svg?branch=master
    :target: https://travis-ci.org/mapbox/rio-mucho
+.. |Coverage Status| image:: https://coveralls.io/repos/mapbox/rio-mucho/badge.svg?branch=setup-stuff
+   :target: https://coveralls.io/r/mapbox/rio-mucho?branch=master
