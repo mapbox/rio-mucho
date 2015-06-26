@@ -1,20 +1,32 @@
 # rio-mucho
 Parallel processing wrapper for rasterio
 
+[![Build Status](https://travis-ci.org/mapbox/rio-mucho.svg?branch=master)](https://travis-ci.org/mapbox/rio-mucho)
+
 ## Usage
 
-1. Define a function to be applied to each window chunk. This should arguments of:
- - An array of of open files
+1. Define a function to be applied to each window chunk. This should have input arguments of:
+ - A list of numpy arrays (one for each file as specified in input file list) of shape `({bands}, {window rows}, {window cols})`
  - A `rasterio` window tuple
  - A `rasterio` window index (`ij`)
- - A global arg object that you can hold global args in
+ - A global arguments object that you can use to pass in global arguments
+
+```python
+def basic_run(data, window, ij, g_args):
+    return data[0]
 ```
+
+2. Alternatively, for more flexibility, you can use a "manual read" where you read each raster in this function. This is useful if you want to read / write different window sizes (eg for pansharpening, or buffered window reading). Here, instead of a list of arrays, the function is passed an array of rasters open for reading.
+
+```python
 def basic_run(open_files, window, ij, g_args):
     return numpy.array([f.read(window=window)[0] for f in open_files]) / g_args['divide']
 ```
 
-2. Make some windows, get or make some keyword args for writing, and pass these and the above function into `riomucho`:
-```
+For both of these, an array of identical shape to the destination window should be returned.
+
+3. To run, make some windows, get or make some keyword args for writing, and pass these and the above function into `riomucho`:
+```python
 import riomucho, rasterio, numpy
 
 # get windows from an input
@@ -28,17 +40,17 @@ global_args = {
     'divide': 2
 }
 
+processes = 4
+
 # run it
-riomucho.read_write_multiple(['/tmp/test_1.ti','/tmp/test_2.tif'], '/tmp/test_3_out.tif', basic_run, windows, global_args, kwargs, 4)
+with riomucho.RioMucho(['input1.tif','input2, input2.tif'], 'output.tif', basic_run,
+    windows=windows,
+    global_args=global_args, 
+    kwargs=kwargs) as rm:
+
+    rm.run(processes)
 
 ```
-FYI
-```
-                                                                                                
-,--.        ,------.                        ,--.                                         ,--.   
-|  |,--,--, |  .-.  \  ,---.,--.  ,--.,---. |  | ,---.  ,---. ,--,--,--. ,---. ,--,--, ,-'  '-. 
-|  ||      \|  |  \  :| .-. :\  `'  /| .-. :|  || .-. || .-. ||        || .-. :|      \'-.  .-' 
-|  ||  ||  ||  '--'  /\   --. \    / \   --.|  |' '-' '| '-' '|  |  |  |\   --.|  ||  |  |  |   
-`--'`--''--'`-------'  `----'  `--'   `----'`--' `---' |  |-' `--`--`--' `----'`--''--'  `--'   
-                                                       `--'                                     
-```
+ - If no windows are specified, rio-mucho uses the block windows of the first input raster
+ - If no kwargs are specified, rio-mucho uses the kwargs of the first input dataset to write to output
+ - If no global args are specified, an empty object is passed.
