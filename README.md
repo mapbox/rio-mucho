@@ -8,13 +8,13 @@ Parallel processing wrapper for rasterio
  - A `rasterio` window tuple
  - A `rasterio` window index (`ij`)
  - A global arg object that you can hold global args in
-```
+```python
 def basic_run(open_files, window, ij, g_args):
     return numpy.array([f.read(window=window)[0] for f in open_files]) / g_args['divide']
 ```
 
 2. Make some windows, get or make some keyword args for writing, and pass these and the above function into `riomucho`:
-```
+```python
 import riomucho, rasterio, numpy
 
 # get windows from an input
@@ -31,14 +31,10 @@ global_args = {
 processes = 4
 
 # run it
-with riomucho.RioMucho(
-    ['input1.tif','input2, input2.tif'],
-    'output.tif',
-    basic_run,
+with riomucho.RioMucho(['input1.tif','input2, input2.tif'], 'output.tif', basic_run,
     windows=windows,
     global_args=global_args, 
-    kwargs=kwargs
-    ) as rm:
+    kwargs=kwargs) as rm:
 
     rm.run(processes)
 
