@@ -28,8 +28,19 @@ global_args = {
     'divide': 2
 }
 
+processes = 4
+
 # run it
-riomucho.read_write_multiple(['/tmp/test_1.ti','/tmp/test_2.tif'], '/tmp/test_3_out.tif', basic_run, windows, global_args, kwargs, 4)
+with riomucho.RioMucho(
+    ['input1.tif','input2, input2.tif'],
+    'output.tif',
+    basic_run,
+    windows=windows,
+    global_args=global_args, 
+    kwargs=kwargs
+    ) as rm:
+
+    rm.run(processes)
 
 ```
 FYI
