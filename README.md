@@ -12,6 +12,7 @@ Parallel processing wrapper for rasterio
 ```python
 def basic_run(data, window, ij, g_args):
     return data[0]
+```
 
 2. Alternatively, for more flexibility, you can use a "manual read" where you read each raster in this function. This is useful if you want to read / write different window sizes (eg for pansharpening, or buffered window reading). Here, instead of a list of arrays, the function is passed an array of rasters open for reading.
 
