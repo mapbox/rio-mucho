@@ -1,6 +1,8 @@
 # rio-mucho
 Parallel processing wrapper for rasterio
 
+[![Build Status](https://travis-ci.org/mapbox/rio-mucho.svg?branch=master)](https://travis-ci.org/mapbox/rio-mucho)
+
 ## Usage
 
 1. Define a function to be applied to each window chunk. This should have input arguments of:
@@ -49,3 +51,6 @@ with riomucho.RioMucho(['input1.tif','input2, input2.tif'], 'output.tif', basic_
     rm.run(processes)
 
 ```
+ - If no windows are specified, rio-mucho uses the block windows of the first input raster
+ - If no kwargs are specified, rio-mucho uses the kwargs of the first input dataset to write to output
+ - If no global args are specified, an empty object is passed.

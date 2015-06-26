@@ -3,6 +3,8 @@ rio-mucho
 
 Parallel processing wrapper for rasterio
 
+|Build Status|
+
 Usage
 -----
 
@@ -16,7 +18,10 @@ Usage
 -  A global arguments object that you can use to pass in global
    arguments
 
-\`\`\`python def basic\_run(data, window, ij, g\_args): return data[0]
+.. code:: python
+
+    def basic_run(data, window, ij, g_args):
+        return data[0]
 
 2. Alternatively, for more flexibility, you can use a "manual read"
    where you read each raster in this function. This is useful if you
@@ -58,4 +63,10 @@ kwargs=kwargs) as rm:
 
     rm.run(processes)
 
-\`\`\`
+\`\`\` - If no windows are specified, rio-mucho uses the block windows
+of the first input raster - If no kwargs are specified, rio-mucho uses
+the kwargs of the first input dataset to write to output - If no global
+args are specified, an empty object is passed.
+
+.. |Build Status| image:: https://travis-ci.org/mapbox/rio-mucho.svg?branch=master
+   :target: https://travis-ci.org/mapbox/rio-mucho
