@@ -22,14 +22,18 @@ def main_worker(inpaths, g_work_func, g_args):
     except:
         return 
  
-def reader_worker(args):
+def openRead(args):
     window, ij = args
     return work_func(srcs, window, ij, global_args), window
+
+def simpleRead(args):
+    window, ij = args
+    return work_func([src.read(window=window) for src in srcs], window, ij, global_args), window
 
 
 def getKwargs(input):
     with rio.open(input) as src:
-        return kwargs
+        return src.meta
 
 def getWindows(input):
     with rio.open(input) as src:
@@ -53,6 +57,11 @@ class RioMucho:
         else:
             self.global_args = kwargs['global_args']
 
+        if not 'simple_read' in kwargs:
+            self.simple_read = False
+        else:
+            self.simple_read = True
+
         self.outpath = outpath
         self.run_function = run_function
     def __enter__(self):
@@ -63,9 +72,14 @@ class RioMucho:
 
     def run(self, processes=4):
         pool = Pool(processes, main_worker, (self.inpaths, self.run_function, self.global_args))
-    
+        
         ##shh
         self.kwargs['transform'] = self.kwargs['affine']
+
+        if self.simple_read:
+            reader_worker = simpleRead
+        else:
+            reader_worker = openRead
 
         ## Open an output file, work through the function in parallel, and write out the data
         with rio.open(self.outpath, 'w', **self.kwargs) as dst:   

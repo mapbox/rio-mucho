@@ -6,8 +6,11 @@ import click, numpy
 make_testing_data.makeTesting('/tmp/test_1.tif', 512, 256, 1)
 make_testing_data.makeTesting('/tmp/test_2.tif', 512, 256, 1)
 
-def basic_run(open_files, window, ij, g_args):
+def read_function(open_files, window, ij, g_args):
     return numpy.array([f.read(window=window)[0] for f in open_files])
+
+def read_function(data, window, ij, g_args):
+    return numpy.array([d[0] for d in data])
 
 def runRioMucho():
     with rasterio.open('/tmp/test_1.tif') as src:
@@ -15,10 +18,18 @@ def runRioMucho():
         kwargs = src.meta
         kwargs.update(count=2)
 
-    with riomucho.RioMucho(['/tmp/test_1.tif','/tmp/test_2.tif'], '/tmp/test_z_out.tif', basic_run,
+    with riomucho.RioMucho(['/tmp/test_1.tif','/tmp/test_2.tif'], '/tmp/test_z_out.tif', read_function,
         windows=windows,
         global_args={}, 
         kwargs=kwargs) as rm:
+
+        rm.run(4)
+
+    with riomucho.RioMucho(['/tmp/test_1.tif','/tmp/test_2.tif'], '/tmp/test_z_out.tif', read_function,
+        windows=windows,
+        global_args={}, 
+        kwargs=kwargs,
+        simple_read=True) as rm:
 
         rm.run(4)
     return True
