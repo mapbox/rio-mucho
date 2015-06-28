@@ -15,7 +15,7 @@ def runRioMucho():
         kwargs = src.meta
         kwargs.update(count=2)
 
-    with riomucho.RioMucho(['/tmp/test_1.tif','/tmp/test_2.tif'], '/tmp/test_z_out.tif', read_function,
+    with riomucho.RioMucho(['/tmp/test_1.tif','/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function,
         windows=windows,
         global_args={}, 
         kwargs=kwargs,
@@ -25,7 +25,5 @@ def runRioMucho():
 
     return True
 
-def run_test():
+def test_riomucho():
     assert runRioMucho() == True
-
-# run_test()
