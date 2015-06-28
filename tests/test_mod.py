@@ -27,3 +27,5 @@ def runRioMucho():
 
 def run_test():
     assert runRioMucho() == True
+
+# run_test()

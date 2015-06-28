@@ -26,6 +26,14 @@ def manualRead(args):
     window, ij = args
     return work_func(srcs, window, ij, global_args), window
 
+def arrayRead(args):
+    window, ij = args
+    return np.array(
+        [src.read() for src in srcs]
+               ).reshape(sum(
+        [src.count for src in srcs]
+                  ), srcs[0].height, srcs[0].width), window
+
 def simpleRead(args):
     window, ij = args
     return work_func([src.read(window=window) for src in srcs], window, ij, global_args), window
@@ -78,6 +86,8 @@ class RioMucho:
 
         if self.manual_read:
             reader_worker = manualRead
+        elif self.array_read:
+            reader_worker = arrayRead
         else:
             reader_worker = simpleRead
 

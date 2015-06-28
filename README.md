@@ -23,7 +23,7 @@ def basic_run(open_files, window, ij, g_args):
     return numpy.array([f.read(window=window)[0] for f in open_files]) / g_args['divide']
 ```
 
-For both of these, an array of identical shape to the destination window should be returned.
+For all of these, an array of identical shape to the destination window should be returned.
 
 3. To run, make some windows, get or make some keyword args for writing, and pass these and the above function into `riomucho`:
 ```python
