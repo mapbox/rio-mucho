@@ -3,7 +3,7 @@ from multiprocessing import Pool
 import rasterio as rio
 import numpy as np
 import click
-import scripts.riomucho_utils as utils
+import riomucho.scripts.riomucho_utils as utils
  
 work_func = None
 global_args = None

@@ -49,5 +49,5 @@ def test_arraystack():
     shape_expected = tuple((sum(t_counts * t_inputs), t_height, t_width))
     t_array_list = [np.zeros((i, t_height, t_width)) for i in t_counts]
 
-    a = riomucho.utils.readArrayStacker(t_array_list)
+    a = riomucho.utils.array_stack(t_array_list)
     assert a.shape == tuple((sum(t_counts), t_height, t_width))

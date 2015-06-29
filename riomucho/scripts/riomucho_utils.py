@@ -1,5 +1,3 @@
-from __future__ import with_statement
-from multiprocessing import Pool
 import rasterio as rio
 import numpy as np
 import click
@@ -17,7 +15,7 @@ def getWindows(input):
 def testUtils():
     return "yo"
 
-def readArrayStacker(arrays):
+def array_stack(arrays):
     width = arrays[0].shape[-1]
     height = arrays[0].shape[-2]
 
