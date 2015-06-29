@@ -3,7 +3,7 @@ from multiprocessing import Pool
 import rasterio as rio
 import numpy as np
 import click
-
+import scripts.riomucho_utils as utils
  
 work_func = None
 global_args = None
@@ -20,7 +20,7 @@ def main_worker(inpaths, g_work_func, g_args):
     try:
         srcs = [rio.open(i) for i in inpaths]
     except:
-        return 
+        return
  
 def manualRead(args):
     window, ij = args
@@ -28,35 +28,23 @@ def manualRead(args):
 
 def arrayRead(args):
     window, ij = args
-    return np.array(
-        [src.read() for src in srcs]
-               ).reshape(sum(
-        [src.count for src in srcs]
-                  ), srcs[0].height, srcs[0].width), window
+    return utils.readArrayStacker([src.read(window) for src in srcs]), window
 
 def simpleRead(args):
     window, ij = args
     return work_func([src.read(window=window) for src in srcs], window, ij, global_args), window
 
 
-def getKwargs(input):
-    with rio.open(input) as src:
-        return src.meta
-
-def getWindows(input):
-    with rio.open(input) as src:
-        return [[window, ij] for ij, window in src.block_windows()]
-
 class RioMucho:
     def __init__(self, inpaths, outpath, run_function, **kwargs):
         self.inpaths = inpaths
         if not 'windows' in kwargs:
-            self.windows = getWindows(inpaths[0])
+            self.windows = utils.getWindows(inpaths[0])
         else:
             self.windows = kwargs['windows']
 
         if not 'kwargs' in kwargs:
-            self.kwargs = getKwargs(inpaths[0])
+            self.kwargs = utils.getKwargs(inpaths[0])
         else:
             self.kwargs = kwargs['kwargs']
 
@@ -70,8 +58,14 @@ class RioMucho:
         else:
             self.manual_read = True
 
+        if not 'array_read' in kwargs:
+            self.array_read = False
+        else:
+            self.array_read = True
+
         self.outpath = outpath
         self.run_function = run_function
+
     def __enter__(self):
         return self
     def __exit__(self, ext_t, ext_v, trace):
@@ -104,3 +98,4 @@ class RioMucho:
 
 if __name__ == '__main__':
     RioMucho()
+    utils()
