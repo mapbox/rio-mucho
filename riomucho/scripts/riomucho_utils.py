@@ -17,6 +17,7 @@ def testUtils():
 
 def array_stack(arrays):
     shapes = np.array([a.shape for a in arrays])
+
     if not np.all(np.roll(shapes[:,1:], 1, axis=0) == shapes[:,1:]):
         raise ValueError('All input arrays must have the same height and width for this mode')
 

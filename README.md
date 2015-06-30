@@ -5,27 +5,65 @@ Parallel processing wrapper for rasterio
 
 ## Usage
 
-1. Define a function to be applied to each window chunk. This should have input arguments of:
- - A list of numpy arrays (one for each file as specified in input file list) of shape `({bands}, {window rows}, {window cols})`
- - A `rasterio` window tuple
- - A `rasterio` window index (`ij`)
- - A global arguments object that you can use to pass in global arguments
-
 ```python
-def basic_run(data, window, ij, g_args):
-    return data[0]
+with riomucho.RioMucho([{inputs}], {output}, {run function},
+    windows={windows},
+    global_args={global arguments}, 
+    kwargs={kwargs to write}) as rios:
+
+    rios.run({processes})
 ```
 
-2. Alternatively, for more flexibility, you can use a "manual read" where you read each raster in this function. This is useful if you want to read / write different window sizes (eg for pansharpening, or buffered window reading). Here, instead of a list of arrays, the function is passed an array of rasters open for reading.
+### Arguments
+
+#### `inputs`
+
+An list of file paths to open and read.
+
+#### `output`
+
+What file to write to.
+
+#### `run_function`
+
+A function to be applied to each window chunk. This should have input arguments of:
+
+1. A data input, which can be one of:
+ - A list of numpy arrays of shape (x,y,z), one for each file as specified in input file list `mode="simple_read" [default]`
+ - A numpy array of shape ({_n_ input files x _n_ band count}, {window rows}, {window cols}) `mode=array_read"`
+ - A list of open sources for reading `mode="manual_read"`
+2. A `rasterio` window tuple
+3. A `rasterio` window index (`ij`)
+4. A global arguments object that you can use to pass in global arguments
+
+This should return:
+
+1. An output array of ({count}, {window rows}, {window cols}) shape, and of the correct data type for writing
 
 ```python
-def basic_run(open_files, window, ij, g_args):
-    return numpy.array([f.read(window=window)[0] for f in open_files]) / g_args['divide']
+def basic_run({data}, {window}, {ij}, {global args}):
+    ## do something
+    return {out}
 ```
 
-For all of these, an array of identical shape to the destination window should be returned.
+### Keyword arguments
 
-3. To run, make some windows, get or make some keyword args for writing, and pass these and the above function into `riomucho`:
+#### `windows={windows}`
+
+A list of `rasterio` window tuples to operate on. `[Default = the block windows of the first input file]`
+
+#### `global_args={global arguments}
+
+Since this is working in parallel, any other objects / values that you want to be accessible in the `run_function`
+
+```python
+global_args = {
+    'divide_value': 2
+}
+```
+
+
+2. To run, make some windows, get or make some keyword args for writing, and pass these and the above function into `riomucho`:
 ```python
 import riomucho, rasterio, numpy
 
