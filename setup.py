@@ -8,8 +8,8 @@ with codecs_open('README.rst', encoding='utf-8') as f:
 
 
 setup(name='rio-mucho',
-      version='0.0.1',
-      description=u"Parallel processing wrapper for rasterio",
+      version='0.0.2',
+      description=u"Windowed multiprocessing wrapper for rasterio",
       long_description=long_description,
       classifiers=[],
       keywords='',
@@ -23,7 +23,7 @@ setup(name='rio-mucho',
       install_requires=[
           'click',
           'rasterio',
-          'numpy',
+          'numpy'
       ],
       extras_require={
           'test': ['pytest'],

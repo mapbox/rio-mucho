@@ -3,7 +3,7 @@ from multiprocessing import Pool
 import rasterio as rio
 import numpy as np
 import click
-
+import riomucho.scripts.riomucho_utils as utils
  
 work_func = None
 global_args = None
@@ -20,35 +20,33 @@ def main_worker(inpaths, g_work_func, g_args):
     try:
         srcs = [rio.open(i) for i in inpaths]
     except:
-        return 
+        return
  
 def manualRead(args):
     window, ij = args
     return work_func(srcs, window, ij, global_args), window
+
+def arrayRead(args):
+    window, ij = args
+    return work_func(utils.array_stack(
+        [src.read(window=window) for src in srcs]),
+        window, ij, global_args), window
 
 def simpleRead(args):
     window, ij = args
     return work_func([src.read(window=window) for src in srcs], window, ij, global_args), window
 
 
-def getKwargs(input):
-    with rio.open(input) as src:
-        return src.meta
-
-def getWindows(input):
-    with rio.open(input) as src:
-        return [[window, ij] for ij, window in src.block_windows()]
-
 class RioMucho:
     def __init__(self, inpaths, outpath, run_function, **kwargs):
         self.inpaths = inpaths
         if not 'windows' in kwargs:
-            self.windows = getWindows(inpaths[0])
+            self.windows = utils.getWindows(inpaths[0])
         else:
             self.windows = kwargs['windows']
 
         if not 'kwargs' in kwargs:
-            self.kwargs = getKwargs(inpaths[0])
+            self.kwargs = utils.getKwargs(inpaths[0])
         else:
             self.kwargs = kwargs['kwargs']
 
@@ -57,13 +55,18 @@ class RioMucho:
         else:
             self.global_args = kwargs['global_args']
 
-        if not 'manual_read' in kwargs:
-            self.manual_read = False
+        if not 'mode' in kwargs or kwargs['mode'] == 'simple_read':
+            self.mode = 'simple_read'
+        elif kwargs['mode'] == 'array_read':
+            self.mode = 'array_read'
+        elif kwargs['mode'] == 'manual_read':
+            self.mode = 'manual_read'
         else:
-            self.manual_read = True
+            return ValueError('mode must be one of: ["simple_read", "manual_read", "array_read"]')
 
         self.outpath = outpath
         self.run_function = run_function
+
     def __enter__(self):
         return self
     def __exit__(self, ext_t, ext_v, trace):
@@ -76,8 +79,10 @@ class RioMucho:
         ##shh
         self.kwargs['transform'] = self.kwargs['affine']
 
-        if self.manual_read:
+        if self.mode == 'manual_read':
             reader_worker = manualRead
+        elif self.mode == 'array_read':
+            reader_worker = arrayRead
         else:
             reader_worker = simpleRead
 
@@ -94,3 +99,4 @@ class RioMucho:
 
 if __name__ == '__main__':
     RioMucho()
+    utils()

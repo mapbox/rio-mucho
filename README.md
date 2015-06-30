@@ -5,32 +5,82 @@ Parallel processing wrapper for rasterio
 
 ## Usage
 
-1. Define a function to be applied to each window chunk. This should have input arguments of:
- - A list of numpy arrays (one for each file as specified in input file list) of shape `({bands}, {window rows}, {window cols})`
- - A `rasterio` window tuple
- - A `rasterio` window index (`ij`)
- - A global arguments object that you can use to pass in global arguments
-
 ```python
-def basic_run(data, window, ij, g_args):
-    return data[0]
+with riomucho.RioMucho([{inputs}], {output}, {run function},
+    windows={windows},
+    global_args={global arguments}, 
+    kwargs={kwargs to write}) as rios:
+
+    rios.run({processes})
 ```
 
-2. Alternatively, for more flexibility, you can use a "manual read" where you read each raster in this function. This is useful if you want to read / write different window sizes (eg for pansharpening, or buffered window reading). Here, instead of a list of arrays, the function is passed an array of rasters open for reading.
+### Arguments
+
+#### `inputs`
+
+An list of file paths to open and read.
+
+#### `output`
+
+What file to write to.
+
+#### `run_function`
+
+A function to be applied to each window chunk. This should have input arguments of:
+
+1. A data input, which can be one of:
+ - A list of numpy arrays of shape (x,y,z), one for each file as specified in input file list `mode="simple_read" [default]`
+ - A numpy array of shape ({_n_ input files x _n_ band count}, {window rows}, {window cols}) `mode=array_read"`
+ - A list of open sources for reading `mode="manual_read"`
+2. A `rasterio` window tuple
+3. A `rasterio` window index (`ij`)
+4. A global arguments object that you can use to pass in global arguments
+
+This should return:
+
+1. An output array of ({count}, {window rows}, {window cols}) shape, and of the correct data type for writing
 
 ```python
-def basic_run(open_files, window, ij, g_args):
-    return numpy.array([f.read(window=window)[0] for f in open_files]) / g_args['divide']
+def basic_run({data}, {window}, {ij}, {global args}):
+    ## do something
+    return {out}
 ```
 
-For both of these, an array of identical shape to the destination window should be returned.
+### Keyword arguments
 
-3. To run, make some windows, get or make some keyword args for writing, and pass these and the above function into `riomucho`:
+#### `windows={windows}`
+
+A list of `rasterio` (window, ij) tuples to operate on. `[Default = src[0].block_windows()]`
+
+#### `global_args={global arguments}`
+
+Since this is working in parallel, any other objects / values that you want to be accessible in the `run_function`. `[Default = {}]`
+
+```python
+global_args = {
+    'divide_value': 2
+}
+```
+
+#### `kwargs={keyword args}`
+
+The kwargs to pass to the output. `[Default = srcs[0].kwargs`
+
+## Example
+
 ```python
 import riomucho, rasterio, numpy
 
+def basic_run(data, window, ij, g_args):
+    ## do something
+    out = np.array(
+        [d[0] /= global_args['divide'] for d in data]
+        )
+    return out
+
 # get windows from an input
 with rasterio.open('/tmp/test_1.tif') as src:
+    ## grabbing the windows as an example. Default behavior is identical.
     windows = [[window, ij] for ij, window in src.block_windows()]
     kwargs = src.meta
     # since we are only writing to 2 bands
@@ -43,7 +93,7 @@ global_args = {
 processes = 4
 
 # run it
-with riomucho.RioMucho(['input1.tif','input2, input2.tif'], 'output.tif', basic_run,
+with riomucho.RioMucho(['input1.tif','input2.tif'], 'output.tif', basic_run,
     windows=windows,
     global_args=global_args, 
     kwargs=kwargs) as rm:
@@ -51,6 +101,25 @@ with riomucho.RioMucho(['input1.tif','input2, input2.tif'], 'output.tif', basic_
     rm.run(processes)
 
 ```
- - If no windows are specified, rio-mucho uses the block windows of the first input raster
- - If no kwargs are specified, rio-mucho uses the kwargs of the first input dataset to write to output
- - If no global args are specified, an empty object is passed.
+
+## Utility functions
+
+### `riomucho.utils.array_stack([array, array, array,...])
+
+Given a list of ({depth}, {rows}, {cols}) numpy arrays, stack into a single (l{list length * each image depth}, {rows}, {cols}) array. This is useful for handling variation between `rgb` inputs of a single file, or separate files for each.
+
+#### One RGB file
+
+```python
+files = ['rgb.tif']
+open_files = [rasterio.open(f) for f in files]
+rgb = `riomucho.utils.array_stack([src.read() for src in open_files])
+```
+
+#### Separate RGB files
+
+```python
+files = ['r.tif', 'g.tif', 'b.tif']
+open_files = [rasterio.open(f) for f in files]
+rgb = `riomucho.utils.array_stack([src.read() for src in open_files])
+```
