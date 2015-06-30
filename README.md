@@ -3,6 +3,24 @@ Parallel processing wrapper for rasterio
 
 [![Build Status](https://travis-ci.org/mapbox/rio-mucho.svg?branch=master)](https://travis-ci.org/mapbox/rio-mucho)
 
+## Install
+
+From pypi:
+
+`pip install rio-mucho --pre`
+
+From github (usually for a branch / dev):
+
+`pip install pip install git+ssh://git@github.com/mapbox/rio-mucho.git@<branch>`
+
+Development:
+
+```
+git clone git@github.com:mapbox/rio-mucho.git
+cd rio-mucho
+pip install -e .
+```
+
 ## Usage
 
 ```python
