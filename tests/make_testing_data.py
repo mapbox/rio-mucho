@@ -24,5 +24,18 @@ def makeTesting(output, size, windowsize, bands):
     with rasterio.open(output, 'w', **kwargs) as dst:
         dst.write(randArr)
 
+def makeRandomArrays(maxsize=100):
+    width = int(np.random.rand() * maxsize) + 1
+    height = int(np.random.rand() * maxsize) + 1
+    inputs = int(np.random.rand() * 4 + 1)
+    counts = [int(np.random.rand() * 3 + 1) for i in range(inputs)]
+    shape_expected = tuple((sum(counts * inputs), height, width))
+    array_list = [np.zeros((i, height, width)) for i in counts]
+    expected_shape = tuple((sum(counts), height, width))
+
+    return array_list, expected_shape
+
+
 if __name__ == '__main__':
     makeTesting()
+    makeRandomArrays

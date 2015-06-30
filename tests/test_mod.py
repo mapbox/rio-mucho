@@ -2,7 +2,7 @@ import riomucho
 import rasterio
 import make_testing_data
 import click, numpy
-import numpy as np
+import pytest
 
 make_testing_data.makeTesting('/tmp/test_1.tif', 512, 256, 1)
 make_testing_data.makeTesting('/tmp/test_2.tif', 512, 256, 1)
@@ -20,7 +20,7 @@ def runRioMuchoManual():
         windows=windows,
         global_args={}, 
         kwargs=kwargs,
-        manual_read=True) as rm:
+        mode='manual_read') as rm:
 
         rm.run(4)
 
@@ -41,13 +41,33 @@ def runRioMuchoSimple():
 def test_riomucho_simple():
     assert runRioMuchoSimple() == True
 
-def test_arraystack():
-    t_width = int(np.random.rand() * 100) + 1
-    t_height = int(np.random.rand() * 100) + 1
-    t_inputs = int(np.random.rand() * 4 + 1)
-    t_counts = [int(np.random.rand() * 3 + 1) for i in range(t_inputs)]
-    shape_expected = tuple((sum(t_counts * t_inputs), t_height, t_width))
-    t_array_list = [np.zeros((i, t_height, t_width)) for i in t_counts]
+def read_function_arrayread(data, window, ij, g_args):
+    return data
 
-    a = riomucho.utils.array_stack(t_array_list)
-    assert a.shape == tuple((sum(t_counts), t_height, t_width))
+def runRioMuchoArrayRead():
+    with rasterio.open('/tmp/test_1.tif') as src:
+        kwargs = src.meta
+        kwargs.update(count=2)
+
+    with riomucho.RioMucho(['/tmp/test_1.tif', '/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_arrayread,
+        mode='array_read', kwargs=kwargs) as rm:
+        rm.run(4)
+
+    return True
+
+def test_riomucho_arrayread():
+    assert runRioMuchoArrayRead() == True
+
+def test_arraystack():
+    t_array_list, expected_shape = make_testing_data.makeRandomArrays()
+
+    stacked = riomucho.utils.array_stack(t_array_list)
+    assert stacked.shape == expected_shape
+
+def test_bad_arraystack():
+    t_array_list, expected_shape = make_testing_data.makeRandomArrays()
+
+    t_array_list.append(numpy.zeros((1, 1,1)))
+
+    with pytest.raises(ValueError):
+        riomucho.utils.array_stack(t_array_list)

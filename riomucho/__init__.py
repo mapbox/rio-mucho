@@ -28,7 +28,9 @@ def manualRead(args):
 
 def arrayRead(args):
     window, ij = args
-    return utils.readArrayStacker([src.read(window) for src in srcs]), window
+    return work_func(utils.array_stack(
+        [src.read(window=window) for src in srcs]),
+        window, ij, global_args), window
 
 def simpleRead(args):
     window, ij = args
@@ -53,15 +55,14 @@ class RioMucho:
         else:
             self.global_args = kwargs['global_args']
 
-        if not 'manual_read' in kwargs:
-            self.manual_read = False
+        if not 'mode' in kwargs or kwargs['mode'] == 'simple_read':
+            self.mode = 'simple_read'
+        elif kwargs['mode'] == 'array_read':
+            self.mode = 'array_read'
+        elif kwargs['mode'] == 'manual_read':
+            self.mode = 'manual_read'
         else:
-            self.manual_read = True
-
-        if not 'array_read' in kwargs:
-            self.array_read = False
-        else:
-            self.array_read = True
+            return ValueError('mode must be one of: ["simple_read", "manual_read", "array_read"]')
 
         self.outpath = outpath
         self.run_function = run_function
@@ -78,9 +79,9 @@ class RioMucho:
         ##shh
         self.kwargs['transform'] = self.kwargs['affine']
 
-        if self.manual_read:
+        if self.mode == 'manual_read':
             reader_worker = manualRead
-        elif self.array_read:
+        elif self.mode == 'array_read':
             reader_worker = arrayRead
         else:
             reader_worker = simpleRead
