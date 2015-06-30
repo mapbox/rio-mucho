@@ -50,11 +50,11 @@ def basic_run({data}, {window}, {ij}, {global args}):
 
 #### `windows={windows}`
 
-A list of `rasterio` window tuples to operate on. `[Default = the block windows of the first input file]`
+A list of `rasterio` (window, ij) tuples to operate on. `[Default = src[0].block_windows()]`
 
-#### `global_args={global arguments}
+#### `global_args={global arguments}`
 
-Since this is working in parallel, any other objects / values that you want to be accessible in the `run_function`
+Since this is working in parallel, any other objects / values that you want to be accessible in the `run_function`. `[Default = {}]`
 
 ```python
 global_args = {
@@ -62,13 +62,25 @@ global_args = {
 }
 ```
 
+#### `kwargs={keyword args}`
 
-2. To run, make some windows, get or make some keyword args for writing, and pass these and the above function into `riomucho`:
+The kwargs to pass to the output. `[Default = srcs[0].kwargs`
+
+## Example
+
 ```python
 import riomucho, rasterio, numpy
 
+def basic_run(data, window, ij, g_args):
+    ## do something
+    out = np.array(
+        [d[0] /= global_args['divide'] for d in data]
+        )
+    return out
+
 # get windows from an input
 with rasterio.open('/tmp/test_1.tif') as src:
+    ## grabbing the windows as an example. Default behavior is identical.
     windows = [[window, ij] for ij, window in src.block_windows()]
     kwargs = src.meta
     # since we are only writing to 2 bands
@@ -81,7 +93,7 @@ global_args = {
 processes = 4
 
 # run it
-with riomucho.RioMucho(['input1.tif','input2, input2.tif'], 'output.tif', basic_run,
+with riomucho.RioMucho(['input1.tif','input2.tif'], 'output.tif', basic_run,
     windows=windows,
     global_args=global_args, 
     kwargs=kwargs) as rm:
@@ -89,6 +101,3 @@ with riomucho.RioMucho(['input1.tif','input2, input2.tif'], 'output.tif', basic_
     rm.run(processes)
 
 ```
- - If no windows are specified, rio-mucho uses the block windows of the first input raster
- - If no kwargs are specified, rio-mucho uses the kwargs of the first input dataset to write to output
- - If no global args are specified, an empty object is passed.
