@@ -32,7 +32,7 @@ Usage
     with riomucho.RioMucho([{inputs}], {output}, {run function},
         windows={windows},
         global_args={global arguments}, 
-        kwargs={kwargs to write}) as rios:
+        meta={meta to write}) as rios:
 
         rios.run({processes})
 
@@ -100,10 +100,10 @@ want to be accessible in the ``run_function``. ``[Default = {}]``
         'divide_value': 2
     }
 
-``kwargs={keyword args}``
-^^^^^^^^^^^^^^^^^^^^^^^^^
+``meta={keyword args}``
+^^^^^^^^^^^^^^^^^^^^^^^
 
-The kwargs to pass to the output. ``[Default = srcs[0].kwargs``
+The meta to pass to the output. ``[Default = srcs[0].meta``
 
 Example
 -------
@@ -123,9 +123,9 @@ Example
     with rasterio.open('/tmp/test_1.tif') as src:
         ## grabbing the windows as an example. Default behavior is identical.
         windows = [[window, ij] for ij, window in src.block_windows()]
-        kwargs = src.meta
+        meta = src.meta
         # since we are only writing to 2 bands
-        kwargs.update(count=2)
+        meta.update(count=2)
 
     global_args = {
         'divide': 2
@@ -137,7 +137,7 @@ Example
     with riomucho.RioMucho(['input1.tif','input2.tif'], 'output.tif', basic_run,
         windows=windows,
         global_args=global_args, 
-        kwargs=kwargs) as rm:
+        meta=meta) as rm:
 
         rm.run(processes)
 
