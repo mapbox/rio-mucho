@@ -3,7 +3,7 @@ import numpy as np
 import click
 
 
-def getKwargs(input):
+def getMeta(input):
     with rio.open(input) as src:
         return src.meta
 

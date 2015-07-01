@@ -45,10 +45,10 @@ class RioMucho:
         else:
             self.windows = kwargs['windows']
 
-        if not 'kwargs' in kwargs:
-            self.kwargs = utils.getKwargs(inpaths[0])
+        if not 'meta' in kwargs:
+            self.meta = utils.getMeta(inpaths[0])
         else:
-            self.kwargs = kwargs['kwargs']
+            self.meta = kwargs['meta']
 
         if not 'global_args' in kwargs:
             self.global_args = {}
@@ -77,7 +77,7 @@ class RioMucho:
         pool = Pool(processes, main_worker, (self.inpaths, self.run_function, self.global_args))
         
         ##shh
-        self.kwargs['transform'] = self.kwargs['affine']
+        self.meta['transform'] = self.meta['affine']
 
         if self.mode == 'manual_read':
             reader_worker = manualRead
@@ -87,7 +87,7 @@ class RioMucho:
             reader_worker = simpleRead
 
         ## Open an output file, work through the function in parallel, and write out the data
-        with rio.open(self.outpath, 'w', **self.kwargs) as dst:   
+        with rio.open(self.outpath, 'w', **self.meta) as dst:   
             for data, window in pool.imap_unordered(reader_worker, self.windows):
                 dst.write(data, window=window)
 
