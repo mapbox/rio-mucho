@@ -3,7 +3,7 @@ import numpy as np
 import click
 
 
-def getMeta(input):
+def getOptions(input):
     with rio.open(input) as src:
         return src.meta
 

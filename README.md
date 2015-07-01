@@ -27,7 +27,7 @@ pip install -e .
 with riomucho.RioMucho([{inputs}], {output}, {run function},
     windows={windows},
     global_args={global arguments}, 
-    meta={meta to write}) as rios:
+    options={options to write}) as rios:
 
     rios.run({processes})
 ```
@@ -80,9 +80,9 @@ global_args = {
 }
 ```
 
-#### `meta={keyword args}`
+#### `options={keyword args}`
 
-The meta to pass to the output. `[Default = srcs[0].meta`
+The options to pass to the writing output. `[Default = srcs[0].meta`
 
 ## Example
 
@@ -100,9 +100,9 @@ def basic_run(data, window, ij, g_args):
 with rasterio.open('/tmp/test_1.tif') as src:
     ## grabbing the windows as an example. Default behavior is identical.
     windows = [[window, ij] for ij, window in src.block_windows()]
-    meta = src.meta
+    options = src.meta
     # since we are only writing to 2 bands
-    meta.update(count=2)
+    options.update(count=2)
 
 global_args = {
     'divide': 2
@@ -114,7 +114,7 @@ processes = 4
 with riomucho.RioMucho(['input1.tif','input2.tif'], 'output.tif', basic_run,
     windows=windows,
     global_args=global_args, 
-    meta=meta) as rm:
+    options=options) as rm:
 
     rm.run(processes)
 

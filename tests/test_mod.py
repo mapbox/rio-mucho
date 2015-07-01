@@ -13,13 +13,13 @@ def read_function_manual(open_files, window, ij, g_args):
 def runRioMuchoManual():
     with rasterio.open('/tmp/test_1.tif') as src:
         windows = [[window, ij] for ij, window in src.block_windows()]
-        meta = src.meta
-        meta.update(count=2)
+        options = src.meta
+        options.update(count=2)
 
     with riomucho.RioMucho(['/tmp/test_1.tif','/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_manual,
         windows=windows,
         global_args={}, 
-        meta=meta,
+        options=options,
         mode='manual_read') as rm:
 
         rm.run(4)
@@ -46,11 +46,11 @@ def read_function_arrayread(data, window, ij, g_args):
 
 def runRioMuchoArrayRead():
     with rasterio.open('/tmp/test_1.tif') as src:
-        meta = src.meta
-        meta.update(count=2)
+        options = src.meta
+        options.update(count=2)
 
     with riomucho.RioMucho(['/tmp/test_1.tif', '/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_arrayread,
-        mode='array_read', meta=meta) as rm:
+        mode='array_read', options=options) as rm:
         rm.run(4)
 
     return True
