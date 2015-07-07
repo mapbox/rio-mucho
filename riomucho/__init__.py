@@ -4,6 +4,7 @@ import rasterio as rio
 import numpy as np
 import click
 import riomucho.scripts.riomucho_utils as utils
+import traceback
  
 work_func = None
 global_args = None
@@ -23,19 +24,30 @@ def main_worker(inpaths, g_work_func, g_args):
         return
  
 def manualRead(args):
-    window, ij = args
-    return work_func(srcs, window, ij, global_args), window
+    try:
+        window, ij = args
+        return work_func(srcs, window, ij, global_args), window
+    except Exception as e:
+        traceback.print_exc()
+        raise e
 
 def arrayRead(args):
     window, ij = args
-    return work_func(utils.array_stack(
-        [src.read(window=window) for src in srcs]),
-        window, ij, global_args), window
+    try:
+        return work_func(utils.array_stack(
+            [src.read(window=window) for src in srcs]),
+            window, ij, global_args), window
+    except Exception as e:
+        traceback.print_exc()
+        raise e
 
 def simpleRead(args):
     window, ij = args
-    return work_func([src.read(window=window) for src in srcs], window, ij, global_args), window
-
+    try:
+        return work_func([src.read(window=window) for src in srcs], window, ij, global_args), window
+    except Exception as e:
+        traceback.print_exc()
+        raise e
 
 class RioMucho:
     def __init__(self, inpaths, outpath, run_function, **kwargs):
@@ -54,6 +66,7 @@ class RioMucho:
             self.global_args = {}
         else:
             self.global_args = kwargs['global_args']
+
 
         if not 'mode' in kwargs or kwargs['mode'] == 'simple_read':
             self.mode = 'simple_read'
@@ -74,7 +87,7 @@ class RioMucho:
             click.echo("in __exit__")
 
     def run(self, processes=4):
-        pool = Pool(processes, main_worker, (self.inpaths, self.run_function, self.global_args))
+        self.pool = Pool(processes, main_worker, (self.inpaths, self.run_function, self.global_args))
         
         ##shh
         self.options['transform'] = self.options['affine']
@@ -88,12 +101,11 @@ class RioMucho:
 
         ## Open an output file, work through the function in parallel, and write out the data
         with rio.open(self.outpath, 'w', **self.options) as dst:   
-            for data, window in pool.imap_unordered(reader_worker, self.windows):
+            for data, window in self.pool.imap_unordered(reader_worker, self.windows):
                 dst.write(data, window=window)
 
-        pool.close()
-        pool.join()
-
+        self.pool.close()
+        self.pool.join()
         return
 
 
