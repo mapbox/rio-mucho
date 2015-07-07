@@ -5,68 +5,170 @@ Parallel processing wrapper for rasterio
 
 |Build Status|
 
-Usage
------
+Install
+-------
 
-1. Define a function to be applied to each window chunk. This should
-   have input arguments of:
+From pypi:
 
--  A list of numpy arrays (one for each file as specified in input file
-   list) of shape ``({bands}, {window rows}, {window cols})``
--  A ``rasterio`` window tuple
--  A ``rasterio`` window index (``ij``)
--  A global arguments object that you can use to pass in global
-   arguments
+``pip install rio-mucho --pre``
 
-.. code:: python
+From github (usually for a branch / dev):
 
-    def basic_run(data, window, ij, g_args):
-        return data[0]
+``pip install pip install git+ssh://git@github.com/mapbox/rio-mucho.git@<branch>``
 
-2. Alternatively, for more flexibility, you can use a "manual read"
-   where you read each raster in this function. This is useful if you
-   want to read / write different window sizes (eg for pansharpening, or
-   buffered window reading). Here, instead of a list of arrays, the
-   function is passed an array of rasters open for reading.
-
-.. code:: python
-
-    def basic_run(open_files, window, ij, g_args):
-        return numpy.array([f.read(window=window)[0] for f in open_files]) / g_args['divide']
-
-For both of these, an array of identical shape to the destination window
-should be returned.
-
-3. To run, make some windows, get or make some keyword args for writing,
-   and pass these and the above function into ``riomucho``: \`\`\`python
-   import riomucho, rasterio, numpy
-
-get windows from an input
-=========================
-
-with rasterio.open('/tmp/test\_1.tif') as src: windows = [[window, ij]
-for ij, window in src.block\_windows()] kwargs = src.meta # since we are
-only writing to 2 bands kwargs.update(count=2)
-
-global\_args = { 'divide': 2 }
-
-processes = 4
-
-run it
-======
-
-with riomucho.RioMucho(['input1.tif','input2, input2.tif'],
-'output.tif', basic\_run, windows=windows, global\_args=global\_args,
-kwargs=kwargs) as rm:
+Development:
 
 ::
 
-    rm.run(processes)
+    git clone git@github.com:mapbox/rio-mucho.git
+    cd rio-mucho
+    pip install -e .
 
-\`\`\` - If no windows are specified, rio-mucho uses the block windows
-of the first input raster - If no kwargs are specified, rio-mucho uses
-the kwargs of the first input dataset to write to output - If no global
-args are specified, an empty object is passed.
+Usage
+-----
+
+.. code:: python
+
+    with riomucho.RioMucho([{inputs}], {output}, {run function},
+        windows={windows},
+        global_args={global arguments}, 
+        meta={meta to write}) as rios:
+
+        rios.run({processes})
+
+Arguments
+~~~~~~~~~
+
+``inputs``
+^^^^^^^^^^
+
+An list of file paths to open and read.
+
+``output``
+^^^^^^^^^^
+
+What file to write to.
+
+``run_function``
+^^^^^^^^^^^^^^^^
+
+A function to be applied to each window chunk. This should have input
+arguments of:
+
+1. A data input, which can be one of:
+
+-  A list of numpy arrays of shape (x,y,z), one for each file as
+   specified in input file list ``mode="simple_read" [default]``
+-  A numpy array of shape ({*n* input files x *n* band count}, {window
+   rows}, {window cols}) ``mode=array_read"``
+-  A list of open sources for reading ``mode="manual_read"``
+
+2. A ``rasterio`` window tuple
+3. A ``rasterio`` window index (``ij``)
+4. A global arguments object that you can use to pass in global
+   arguments
+
+This should return:
+
+1. An output array of ({count}, {window rows}, {window cols}) shape, and
+   of the correct data type for writing
+
+.. code:: python
+
+    def basic_run({data}, {window}, {ij}, {global args}):
+        ## do something
+        return {out}
+
+Keyword arguments
+~~~~~~~~~~~~~~~~~
+
+``windows={windows}``
+^^^^^^^^^^^^^^^^^^^^^
+
+A list of ``rasterio`` (window, ij) tuples to operate on.
+``[Default = src[0].block_windows()]``
+
+``global_args={global arguments}``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since this is working in parallel, any other objects / values that you
+want to be accessible in the ``run_function``. ``[Default = {}]``
+
+.. code:: python
+
+    global_args = {
+        'divide_value': 2
+    }
+
+``meta={keyword args}``
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The meta to pass to the output. ``[Default = srcs[0].meta``
+
+Example
+-------
+
+.. code:: python
+
+    import riomucho, rasterio, numpy
+
+    def basic_run(data, window, ij, g_args):
+        ## do something
+        out = np.array(
+            [d[0] /= global_args['divide'] for d in data]
+            )
+        return out
+
+    # get windows from an input
+    with rasterio.open('/tmp/test_1.tif') as src:
+        ## grabbing the windows as an example. Default behavior is identical.
+        windows = [[window, ij] for ij, window in src.block_windows()]
+        meta = src.meta
+        # since we are only writing to 2 bands
+        meta.update(count=2)
+
+    global_args = {
+        'divide': 2
+    }
+
+    processes = 4
+
+    # run it
+    with riomucho.RioMucho(['input1.tif','input2.tif'], 'output.tif', basic_run,
+        windows=windows,
+        global_args=global_args, 
+        meta=meta) as rm:
+
+        rm.run(processes)
+
+Utility functions
+-----------------
+
+\`riomucho.utils.array\_stack([array, array, array,...])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a list of ({depth}, {rows}, {cols}) numpy arrays, stack into a
+single (l{list length \* each image depth}, {rows}, {cols}) array. This
+is useful for handling variation between ``rgb`` inputs of a single
+file, or separate files for each.
+
+One RGB file
+^^^^^^^^^^^^
+
+.. code:: python
+
+    files = ['rgb.tif']
+    open_files = [rasterio.open(f) for f in files]
+    rgb = `riomucho.utils.array_stack([src.read() for src in open_files])
+
+Separate RGB files
+^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    files = ['r.tif', 'g.tif', 'b.tif']
+    open_files = [rasterio.open(f) for f in files]
+    rgb = `riomucho.utils.array_stack([src.read() for src in open_files])
 
 .. |Build Status| image:: https://travis-ci.org/mapbox/rio-mucho.svg?branch=master
    :target: https://travis-ci.org/mapbox/rio-mucho

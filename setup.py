@@ -8,7 +8,7 @@ with codecs_open('README.rst', encoding='utf-8') as f:
 
 
 setup(name='rio-mucho',
-      version='0.0.2',
+      version='0.1.1',
       description=u"Windowed multiprocessing wrapper for rasterio",
       long_description=long_description,
       classifiers=[],

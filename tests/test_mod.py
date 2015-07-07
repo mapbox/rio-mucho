@@ -13,13 +13,13 @@ def read_function_manual(open_files, window, ij, g_args):
 def runRioMuchoManual():
     with rasterio.open('/tmp/test_1.tif') as src:
         windows = [[window, ij] for ij, window in src.block_windows()]
-        kwargs = src.meta
-        kwargs.update(count=2)
+        options = src.meta
+        options.update(count=2)
 
     with riomucho.RioMucho(['/tmp/test_1.tif','/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_manual,
         windows=windows,
         global_args={}, 
-        kwargs=kwargs,
+        options=options,
         mode='manual_read') as rm:
 
         rm.run(4)
@@ -46,11 +46,11 @@ def read_function_arrayread(data, window, ij, g_args):
 
 def runRioMuchoArrayRead():
     with rasterio.open('/tmp/test_1.tif') as src:
-        kwargs = src.meta
-        kwargs.update(count=2)
+        options = src.meta
+        options.update(count=2)
 
     with riomucho.RioMucho(['/tmp/test_1.tif', '/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_arrayread,
-        mode='array_read', kwargs=kwargs) as rm:
+        mode='array_read', options=options) as rm:
         rm.run(4)
 
     return True
@@ -67,7 +67,7 @@ def test_arraystack():
 def test_bad_arraystack():
     t_array_list, expected_shape = make_testing_data.makeRandomArrays()
 
-    t_array_list.append(numpy.zeros((1, 1,1)))
+    t_array_list.append(numpy.zeros((1, 1, 1)))
 
     with pytest.raises(ValueError):
         riomucho.utils.array_stack(t_array_list)
