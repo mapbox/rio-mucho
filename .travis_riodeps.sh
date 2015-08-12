@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 #
-# Conditionally download a wheelset satisfying Rasterio's dependencies to 
+# Conditionally download a wheel set satisfying Rasterio's dependencies to
 # speed up builds.
+#
+# If we find the right rasterio wheel in the wheelhouse directory, we skip
+# the download. Else, we download and extract into the wheelhouse dir.
 
 set -e
 
