@@ -26,6 +26,6 @@ setup(name='rio-mucho',
           'numpy'
       ],
       extras_require={
-          'test': ['pytest'],
+          'test': ['pytest', 'pytest-cov'],
       }
       )
