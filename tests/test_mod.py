@@ -1,4 +1,4 @@
-import riomucho
+import riomucho, os
 import rasterio
 import make_testing_data
 import click, numpy
@@ -71,3 +71,20 @@ def test_bad_arraystack():
 
     with pytest.raises(ValueError):
         riomucho.utils.array_stack(t_array_list)
+
+def test_out_of_filspace():
+    import platform
+
+    if platform.platform().split('-')[0] != 'Darwin':
+
+        os.system("mkdir /tmp/ramdisk; chmod 777 /tmp/ramdisk; mount -t tmpfs -o size=1M tmpfs /tmp/ramdisk/")
+        make_testing_data.makeTesting('/tmp/test_1.tif', 2048, 2048, 3)
+
+        with rasterio.open('/tmp/test_1.tif') as src:
+            options = src.meta
+            options.update(count=2)
+
+        with pytest.raises('IOError'):
+            with riomucho.RioMucho(['/tmp/test_1.tif'], '/tmp/ramdisk/test_1.tif', read_function_arrayread,
+                mode='array_read', options=options) as rm:
+                rm.run(4)
