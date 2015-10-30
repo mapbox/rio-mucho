@@ -77,7 +77,6 @@ def test_out_of_filspace():
 
     if platform.platform().split('-')[0] != 'Darwin':
 
-        os.system("mkdir /tmp/ramdisk; chmod 777 /tmp/ramdisk; mount -t tmpfs -o size=1M tmpfs /tmp/ramdisk/")
         make_testing_data.makeTesting('/tmp/test_1.tif', 2048, 2048, 3)
 
         with rasterio.open('/tmp/test_1.tif') as src:
