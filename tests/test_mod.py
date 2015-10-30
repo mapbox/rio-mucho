@@ -84,7 +84,7 @@ def test_out_of_filspace():
             options = src.meta
             options.update(count=2)
 
-        with pytest.raises('IOError'):
+        with pytest.raises(IOError):
             with riomucho.RioMucho(['/tmp/test_1.tif'], '/tmp/ramdisk/test_1.tif', read_function_arrayread,
                 mode='array_read', options=options) as rm:
                 rm.run(4)
