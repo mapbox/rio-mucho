@@ -1,7 +1,7 @@
 # rio-mucho
 Parallel processing wrapper for rasterio
 
-[![Build Status](https://travis-ci.org/mapbox/rio-mucho.svg?branch=master)](https://travis-ci.org/mapbox/rio-mucho)
+[![Build Status](https://travis-ci.org/mapbox/rio-mucho.svg?branch=master)](https://travis-ci.org/mapbox/rio-mucho)[![Coverage Status](https://coveralls.io/repos/mapbox/rio-mucho/badge.svg?branch=master&service=github)](https://coveralls.io/github/mapbox/rio-mucho?branch=master)
 
 ## Install
 
