@@ -1,26 +1,60 @@
-sudo: false
 language: python
+
+sudo: false
+
+cache:
+  # Apparently if you override the install command that silently disables the
+  # cache: pip support. This is less than ideal and I've opened up
+  # travis-ci/travis-ci#3239 to hopefully get that addressed. For now I'll
+  # manually add the pip cache directory to the build cache.
+  directories:
+    - ~/.cache/pip
+
 env:
-  - RASTERIO_VERSION=0.26.0
-addons:
-  apt:
-    packages:
-      - libgdal1h
-      - gdal-bin
+  global:
+    # These two environment variables could be set by Travis itself, or Travis
+    # could configure itself in /etc/, ~/, or inside of the virtual
+    # environments. In any case if these two values get configured then end
+    # users only need to enable the pip cache and manually run pip wheel before
+    # running pip install.
+    - PIP_WHEEL_DIR=$HOME/.cache/pip/wheels
+    - PIP_FIND_LINKS=file://$HOME/.cache/pip/wheels
+
 python:
   - "2.7"
   - "3.4"
+
+addons:
+  apt:
+    packages:
+    - libgdal1h
+    - gdal-bin
+    - libgdal-dev
+    - libatlas-dev
+    - libatlas-base-dev
+    - liblapack-dev
+    - gfortran
+    - libgmp-dev
+    - libmpfr-dev
+
+
 cache:
   directories:
     - $HOME/.pip-cache/
     - $HOME/wheelhouse
+
 before_install:
-  - "./.travis_riodeps.sh"
+  - pip install -U pip
+  - pip install wheel
+
 install:
-  - "pip install -U pip"
-  - "pip install --use-wheel --find-links=$HOME/wheelhouse coveralls --cache-dir $HOME/.pip-cache"
-  - "pip install --use-wheel --find-links=$HOME/wheelhouse -e .[test] --cache-dir $HOME/.pip-cache"
+  - "pip wheel -r requirements.txt"
+  # Actually install our dependencies now, this will pull from the directory
+  # that the first command placed the Wheels into.
+  - "pip install -e .[test]"
+
 script:
   - py.test --cov riomucho --cov-report term-missing
+
 after_success:
   - coveralls
