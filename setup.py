@@ -1,3 +1,4 @@
+import os
 from codecs import open as codecs_open
 from setuptools import setup, find_packages
 
@@ -6,6 +7,8 @@ from setuptools import setup, find_packages
 with codecs_open('README.rst', encoding='utf-8') as f:
     long_description = f.read()
 
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(name='rio-mucho',
       version='0.1.1',
@@ -20,12 +23,8 @@ setup(name='rio-mucho',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=[
-          'click',
-          'rasterio',
-          'numpy'
-      ],
+      install_requires=read('requirements.txt').splitlines(),
       extras_require={
-          'test': ['pytest', 'pytest-cov'],
+          'test': ['pytest', 'pytest-cov', 'coveralls'],
       }
       )

@@ -1,13 +1,14 @@
 # rio-mucho
+
 Parallel processing wrapper for rasterio
 
-[![Build Status](https://travis-ci.org/mapbox/rio-mucho.svg?branch=master)](https://travis-ci.org/mapbox/rio-mucho)[![Coverage Status](https://coveralls.io/repos/mapbox/rio-mucho/badge.svg?branch=master&service=github)](https://coveralls.io/github/mapbox/rio-mucho?branch=master)
+ [![PyPI](https://img.shields.io/pypi/v/rio-mucho.svg?maxAge=2592000?style=plastic)]() [![Build Status](https://travis-ci.org/mapbox/rio-mucho.svg?branch=master)](https://travis-ci.org/mapbox/rio-mucho) [![Coverage Status](https://coveralls.io/repos/mapbox/rio-mucho/badge.svg?branch=master&service=github)](https://coveralls.io/github/mapbox/rio-mucho?branch=master)
 
 ## Install
 
 From pypi:
 
-`pip install rio-mucho --pre`
+`pip install rio-mucho`
 
 From github (usually for a branch / dev):
 
