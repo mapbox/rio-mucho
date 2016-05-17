@@ -123,7 +123,7 @@ with riomucho.RioMucho(['input1.tif','input2.tif'], 'output.tif', basic_run,
 
 ## Utility functions
 
-### `riomucho.utils.array_stack([array, array, array,...])
+### `riomucho.utils.array_stack([array, array, array,...])`
 
 Given a list of ({depth}, {rows}, {cols}) numpy arrays, stack into a single ({list length * each image depth}, {rows}, {cols}) array. This is useful for handling variation between `rgb` inputs of a single file, or separate files for each.
 
@@ -132,7 +132,7 @@ Given a list of ({depth}, {rows}, {cols}) numpy arrays, stack into a single ({li
 ```python
 files = ['rgb.tif']
 open_files = [rasterio.open(f) for f in files]
-rgb =`riomucho.utils.array_stack([src.read() for src in open_files])
+rgb =riomucho.utils.array_stack([src.read() for src in open_files])
 ```
 
 #### Separate RGB files
