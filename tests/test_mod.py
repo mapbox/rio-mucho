@@ -34,7 +34,7 @@ def read_function_simple(data, window, ij, g_args):
 
 def runRioMuchoSimple():
     with riomucho.RioMucho(['/tmp/test_1.tif'], '/tmp/test_xyz_out.tif', read_function_simple) as rm:
-        rm.run(4)
+        rm.run(1)
 
     return True
 
