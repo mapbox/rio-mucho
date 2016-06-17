@@ -111,8 +111,3 @@ class RioMucho:
         self.pool.close()
         self.pool.join()
         return
-
-
-if __name__ == '__main__':
-    RioMucho()
-    utils()
