@@ -40,7 +40,7 @@ def read_function_simple(data, window, ij, g_args):
 
 def test_riomucho_simple():
     with riomucho.RioMucho(['/tmp/test_1.tif'], '/tmp/test_xyz_out.tif', read_function_simple) as rm:
-        rm.run(2)
+        rm.run(1)
 
     with rasterio.open('/tmp/test_xyz_out.tif') as outputsrc:
         assert numpy.sum(outputsrc.read(1)[:10, :10] != 0) == 0
