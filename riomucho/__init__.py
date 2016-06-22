@@ -4,6 +4,7 @@ import rasterio as rio
 import numpy as np
 import click
 import riomucho.scripts.riomucho_utils as utils
+from riomucho.single_process_pool import MockTub
 import traceback
  
 work_func = None
@@ -87,9 +88,12 @@ class RioMucho:
             click.echo("in __exit__")
 
     def run(self, processes=4):
-        self.pool = Pool(processes, main_worker, (self.inpaths, self.run_function, self.global_args))
-        
-        ##shh
+
+        if processes == 1:
+            self.pool = MockTub(main_worker, (self.inpaths, self.run_function, self.global_args))
+        else:
+            self.pool = Pool(processes, main_worker, (self.inpaths, self.run_function, self.global_args))
+
         self.options['transform'] = self.options['affine']
 
         if self.mode == 'manual_read':
@@ -107,8 +111,3 @@ class RioMucho:
         self.pool.close()
         self.pool.join()
         return
-
-
-if __name__ == '__main__':
-    RioMucho()
-    utils()

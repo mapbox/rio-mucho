@@ -5,15 +5,12 @@ import click
 
 def getOptions(input):
     with rio.open(input) as src:
-        return src.meta
+        return src.profile
 
 
 def getWindows(input):
     with rio.open(input) as src:
         return [[window, ij] for ij, window in src.block_windows()]
-
-def testUtils():
-    return "yo"
 
 def array_stack(arrays):
     shapes = np.array([a.shape for a in arrays])
