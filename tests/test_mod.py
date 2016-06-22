@@ -72,6 +72,13 @@ def test_riomucho_arrayread():
                 assert inputsrc2.checksum(1) == outputsrc.checksum(2)
 
 
+def test_riomucho_readmode_fail():
+    with pytest.raises(ValueError):
+        with riomucho.RioMucho(['/tmp/test_1.tif',], '/tmp/test_xyz_out.tif', read_function_arrayread,
+            mode='mucho_gusto') as rm:
+            rm.run(4)
+
+
 def test_arraystack():
     t_array_list, expected_shape = make_testing_data.makeRandomArrays()
 

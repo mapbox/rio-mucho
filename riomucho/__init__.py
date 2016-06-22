@@ -76,7 +76,7 @@ class RioMucho:
         elif kwargs['mode'] == 'manual_read':
             self.mode = 'manual_read'
         else:
-            return ValueError('mode must be one of: ["simple_read", "manual_read", "array_read"]')
+            raise ValueError('mode must be one of: ["simple_read", "manual_read", "array_read"]')
 
         self.outpath = outpath
         self.run_function = run_function
@@ -85,7 +85,7 @@ class RioMucho:
         return self
     def __exit__(self, ext_t, ext_v, trace):
         if ext_t:
-            click.echo("in __exit__")
+            traceback.print_exc()
 
     def run(self, processes=4):
 
