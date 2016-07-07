@@ -1,17 +1,18 @@
 from __future__ import with_statement
 from multiprocessing import Pool
 import rasterio as rio
+from rasterio.transform import guard_transform
 import numpy as np
 import click
 import riomucho.scripts.riomucho_utils as utils
 from riomucho.single_process_pool import MockTub
 import traceback
- 
+
 work_func = None
 global_args = None
 srcs = None
- 
- 
+
+
 def main_worker(inpaths, g_work_func, g_args):
     """"""
     global work_func
@@ -23,7 +24,7 @@ def main_worker(inpaths, g_work_func, g_args):
         srcs = [rio.open(i) for i in inpaths]
     except:
         return
- 
+
 def manualRead(args):
     try:
         window, ij = args
@@ -94,7 +95,7 @@ class RioMucho:
         else:
             self.pool = Pool(processes, main_worker, (self.inpaths, self.run_function, self.global_args))
 
-        self.options['transform'] = self.options['affine']
+        self.options['transform'] = guard_transform(self.options['transform'])
 
         if self.mode == 'manual_read':
             reader_worker = manualRead
@@ -104,7 +105,7 @@ class RioMucho:
             reader_worker = simpleRead
 
         ## Open an output file, work through the function in parallel, and write out the data
-        with rio.open(self.outpath, 'w', **self.options) as dst:   
+        with rio.open(self.outpath, 'w', **self.options) as dst:
             for data, window in self.pool.imap_unordered(reader_worker, self.windows):
                 dst.write(data, window=window)
 
