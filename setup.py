@@ -11,7 +11,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(name='rio-mucho',
-      version='0.2.1',
+      version='0.2.2',
       description=u"Windowed multiprocessing wrapper for rasterio",
       long_description=long_description,
       classifiers=[],
