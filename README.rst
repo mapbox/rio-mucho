@@ -14,7 +14,7 @@ From pypi:
 
 From github (usually for a branch / dev):
 
-``pip install pip install git+ssh://git@github.com/mapbox/rio-mucho.git@<branch>``
+``pip install pip install git+ssh://git@github.com/mapbox/rio-mucho.git@<branch>#egg=riomucho``
 
 Development:
 
