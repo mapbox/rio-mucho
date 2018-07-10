@@ -11,6 +11,7 @@ import riomucho.scripts.riomucho_utils as utils
 from riomucho.single_process_pool import MockTub
 import traceback
 
+
 work_func = None
 global_args = None
 srcs = None
@@ -111,4 +112,3 @@ class RioMucho:
 
         self.pool.close()
         self.pool.join()
-        return
