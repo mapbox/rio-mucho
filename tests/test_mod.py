@@ -1,7 +1,8 @@
 import riomucho
 import rasterio
 import make_testing_data
-import click, numpy
+import click
+import numpy
 import pytest
 
 make_testing_data.makeTesting('/tmp/test_1.tif', 512, 256, 1)
@@ -16,7 +17,7 @@ def runRioMuchoManual():
         options = src.meta
         options.update(count=2)
 
-    with riomucho.RioMucho(['/tmp/test_1.tif','/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_manual,
+    with riomucho.RioMucho(['/tmp/test_1.tif', '/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_manual,
         windows=windows,
         global_args={}, 
         options=options,
@@ -56,7 +57,7 @@ def runRioMuchoArrayRead():
     return True
 
 def test_riomucho_arrayread():
-    assert runRioMuchoArrayRead() == True
+    assert runRioMuchoArrayRead()
 
 def test_arraystack():
     t_array_list, expected_shape = make_testing_data.makeRandomArrays()
@@ -71,3 +72,9 @@ def test_bad_arraystack():
 
     with pytest.raises(ValueError):
         riomucho.utils.array_stack(t_array_list)
+
+
+def test_bad_mode():
+    """ValueError results from invalid mode"""
+    with pytest.raises(ValueError):
+        riomucho.RioMucho([], None, None, mode="bogus")
