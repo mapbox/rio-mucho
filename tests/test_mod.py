@@ -1,7 +1,8 @@
 import riomucho
 import rasterio
 import make_testing_data
-import click, numpy
+import click
+import numpy
 import pytest
 
 from rasterio.errors import RasterioIOError
@@ -20,7 +21,7 @@ def test_riomucho_manual():
         options = src.meta
         options.update(count=2)
 
-    with riomucho.RioMucho(['/tmp/test_1.tif','/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_manual,
+    with riomucho.RioMucho(['/tmp/test_1.tif', '/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_manual,
         windows=windows,
         global_args={}, 
         options=options,
@@ -93,3 +94,31 @@ def test_bad_arraystack():
 
     with pytest.raises(ValueError):
         riomucho.utils.array_stack(t_array_list)
+
+
+def test_pool_worker_exceptions(tmpdir):
+    with rasterio.open('/tmp/test_1.tif') as src:
+        options = src.profile
+        options.update(count=2)
+
+    def fail(data, window, ij, g_args):
+        return data * (1 / 0)
+
+    with riomucho.RioMucho(['/tmp/test_1.tif', '/tmp/test_2.tif'], str(tmpdir.join('output.tif')), fail,
+            mode='array_read', options=options) as rm:
+        with pytest.raises(riomucho.MuchoChildError) as excinfo:
+            rm.run(4)
+
+        assert "ZeroDivisionError" in str(excinfo.value)
+
+
+def test_job_decorator():
+    """Exception in a job is captured"""
+    @riomucho.job
+    def foo(*args, **kwargs):
+        return 1 / 0
+
+    with pytest.raises(riomucho.MuchoChildError) as excinfo:
+        foo()
+
+    assert "ZeroDivisionError" in str(excinfo.value)

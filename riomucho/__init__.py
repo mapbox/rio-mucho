@@ -2,19 +2,67 @@
 """
 
 from __future__ import with_statement
+from functools import wraps
 from multiprocessing import Pool
+import sys
+import traceback
+
+import click
+import numpy as np
 import rasterio as rio
 from rasterio.transform import guard_transform
-import numpy as np
-import click
+
 import riomucho.scripts.riomucho_utils as utils
 from riomucho.single_process_pool import MockTub
-import traceback
 
 
 work_func = None
 global_args = None
 srcs = None
+
+
+class MuchoChildError(Exception):
+    """A wrapper for exceptions in a child process.
+
+    See https://bugs.python.org/issue13831
+    """
+    def __init__(self):
+        """Wrap the last exception."""
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        self.exception = exc_value
+        self.formatted = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+    def __str__(self):
+        return "{}\nChild process's traceback:\n{}".format(
+            Exception.__str__(self), self.formatted)
+
+
+def job(func):
+    """A decorator which captures job state.
+
+    Tracebacks in particular, are captured. Inspired by an example in
+    https://bugs.python.org/issue13831.
+
+    This decorator wraps rio-mucho jobs.
+
+    Parameters
+    ----------
+    func : function
+        A function to be decorated.
+
+    Returns
+    -------
+    func
+
+    """
+    @wraps(func)
+    def wrapper(*args, **kwds):
+        try:
+            return func(*args, **kwds)
+        except Exception:
+            raise MuchoChildError()
+
+    return wrapper
 
 
 def main_worker(inpaths, g_work_func, g_args):
@@ -27,12 +75,14 @@ def main_worker(inpaths, g_work_func, g_args):
     srcs = [rio.open(i) for i in inpaths]
 
 
+@job
 def manualRead(args):
     """TODO"""
     window, ij = args
     return work_func(srcs, window, ij, global_args), window
 
 
+@job
 def arrayRead(args):
     """TODO"""
     window, ij = args
@@ -41,6 +91,7 @@ def arrayRead(args):
         window, ij, global_args), window
 
 
+@job
 def simpleRead(args):
     """TODO"""
     window, ij = args
