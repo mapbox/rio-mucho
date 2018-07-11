@@ -9,7 +9,7 @@ import traceback
 
 import click
 import numpy as np
-import rasterio as rio
+import rasterio
 from rasterio.transform import guard_transform
 
 import riomucho.scripts.riomucho_utils as utils
@@ -72,7 +72,7 @@ def main_worker(inpaths, g_work_func, g_args):
     global srcs
     work_func = g_work_func
     global_args = g_args
-    srcs = [rio.open(i) for i in inpaths]
+    srcs = [rasterio.open(i) for i in inpaths]
 
 
 @job
@@ -102,11 +102,11 @@ class RioMucho:
     """TODO
     """
 
-    def __init__(self, inpaths, outpath, run_function, **kwargs):
+    def __init__(self, inpaths, outpath_or_dataset, run_function, **kwargs):
         """TODO
         """
         self.inpaths = inpaths
-        self.outpath = outpath
+        self.outpath_or_dataset = outpath_or_dataset
         self.run_function = run_function
 
         if 'mode' not in kwargs or kwargs['mode'] == 'simple_read':
@@ -155,9 +155,14 @@ class RioMucho:
         else:
             reader_worker = simpleRead
 
+        if isinstance(self.outpath_or_dataset, rasterio.io.DatasetWriter):
+            destination = self.outpath_or_dataset
+        else:
+            destination = rasterio.open(self.outpath_or_dataset, 'w', **self.options)
+
         # Open an output file, work through the function in parallel,
         # and write out the data.
-        with rio.open(self.outpath, 'w', **self.options) as dst:
+        with destination as dst:
             for data, window in self.pool.imap_unordered(reader_worker, self.windows):
                 dst.write(data, window=window)
 

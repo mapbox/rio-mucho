@@ -23,7 +23,7 @@ def test_riomucho_manual():
 
     with riomucho.RioMucho(['/tmp/test_1.tif', '/tmp/test_2.tif'], '/tmp/test_xyz_out.tif', read_function_manual,
         windows=windows,
-        global_args={}, 
+        global_args={},
         options=options,
         mode='manual_read') as rm:
 
@@ -75,8 +75,9 @@ def test_riomucho_arrayread():
 
 def test_riomucho_readmode_fail():
     with pytest.raises(ValueError):
-        with riomucho.RioMucho(['/tmp/test_1.tif',], '/tmp/test_xyz_out.tif', read_function_arrayread,
-            mode='mucho_gusto') as rm:
+        with riomucho.RioMucho(
+                ['/tmp/test_1.tif'], '/tmp/test_xyz_out.tif', read_function_arrayread,
+                mode='mucho_gusto') as rm:
             rm.run(4)
 
 
@@ -104,8 +105,10 @@ def test_pool_worker_exceptions(tmpdir):
     def fail(data, window, ij, g_args):
         return data * (1 / 0)
 
-    with riomucho.RioMucho(['/tmp/test_1.tif', '/tmp/test_2.tif'], str(tmpdir.join('output.tif')), fail,
-            mode='array_read', options=options) as rm:
+    with riomucho.RioMucho(
+            ['/tmp/test_1.tif', '/tmp/test_2.tif'],
+            str(tmpdir.join('output.tif')), fail, mode='array_read',
+            options=options) as rm:
         with pytest.raises(riomucho.MuchoChildError) as excinfo:
             rm.run(4)
 
@@ -120,5 +123,17 @@ def test_job_decorator():
 
     with pytest.raises(riomucho.MuchoChildError) as excinfo:
         foo()
-
     assert "ZeroDivisionError" in str(excinfo.value)
+
+
+def test_riomucho_simple_dataset_object(tmpdir):
+    """We can pass an open dataset for output"""
+    with rasterio.open('/tmp/test_1.tif') as src:
+        options = src.profile
+
+    with rasterio.open(str(tmpdir.join('output.tif')), 'w', **options) as dst:
+        with riomucho.RioMucho(['/tmp/test_1.tif'], dst, read_function_simple) as rm:
+            rm.run(1)
+
+    with rasterio.open(str(tmpdir.join('output.tif'))) as outputsrc:
+        assert numpy.sum(outputsrc.read(1)[:10, :10] != 0) == 0
