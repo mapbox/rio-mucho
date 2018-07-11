@@ -17,7 +17,11 @@ setup(
     version="1.0dev1",
     description=u"Windowed multiprocessing wrapper for rasterio",
     long_description=long_description,
-    classifiers=[],
+    classifiers=[
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+    ],
     keywords="",
     author=u"Damon Burgett",
     author_email="damon@mapbox.com",
@@ -26,6 +30,6 @@ setup(
     packages=find_packages(exclude=["ez_setup", "examples", "tests"]),
     include_package_data=True,
     zip_safe=False,
-    install_requires=["click", "numpy", "rasterio>=1.0rc4"],
+    install_requires=["click", "numpy", "rasterio>=1.0rc5"],
     extras_require={"test": ["pytest", "pytest-cov", "coveralls"]},
 )
