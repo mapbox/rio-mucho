@@ -1,4 +1,4 @@
-"""TODO
+"""Utility functions
 """
 
 import rasterio
@@ -7,19 +7,19 @@ import click
 
 
 def getOptions(input):
-    """TODO"""
+    """Get a source's profile"""
     with rasterio.open(input) as src:
         return src.profile
 
 
 def getWindows(input):
-    """TODO"""
+    """Get a source's windows"""
     with rasterio.open(input) as src:
         return [[window, ij] for ij, window in src.block_windows()]
 
 
 def array_stack(arrays):
-    """TODO"""
+    """Stack arrays"""
     shapes = np.array([a.shape for a in arrays])
 
     if not np.all(np.roll(shapes[:, 1:], 1, axis=0) == shapes[:, 1:]):

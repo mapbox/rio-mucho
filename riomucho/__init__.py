@@ -202,12 +202,11 @@ class RioMucho(object):
         self.options['transform'] = guard_transform(self.options['transform'])
 
         if self.mode == 'manual_read':
-            reader_worker = manual_reader(self.run_function)  # manualRead
+            reader_worker = manual_reader(self.run_function)
         elif self.mode == 'array_read':
-            reader_worker = array_reader(self.run_function)  # arrayRead
+            reader_worker = array_reader(self.run_function)
         else:
             reader_worker = simple_reader(self.run_function)
-            # reader_worker = simpleRead
 
         if isinstance(self.outpath_or_dataset, rasterio.io.DatasetWriter):
             destination = self.outpath_or_dataset
