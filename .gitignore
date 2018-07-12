@@ -55,3 +55,7 @@ target/
 
 # OS X
 .DS_Store
+.coverage*
+.pytest_cache
+*.orig
+*.rej

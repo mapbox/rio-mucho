@@ -1,114 +1,224 @@
+"""TODO
+"""
+
 from __future__ import with_statement
+from functools import wraps
 from multiprocessing import Pool
-import rasterio as rio
-from rasterio.transform import guard_transform
-import numpy as np
-import click
-import riomucho.scripts.riomucho_utils as utils
-from riomucho.single_process_pool import MockTub
+import sys
 import traceback
 
-work_func = None
+import click
+import numpy as np
+import rasterio
+from rasterio.transform import guard_transform
+
+from riomucho import utils
+from riomucho.single_process_pool import MockTub
+
+
 global_args = None
 srcs = None
 
 
-def main_worker(inpaths, g_work_func, g_args):
-    """"""
-    global work_func
+class MuchoChildError(Exception):
+    """A wrapper for exceptions in a child process.
+
+    See https://bugs.python.org/issue13831
+    """
+    def __init__(self):
+        """Wrap the last exception."""
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        self.exception = exc_value
+        self.formatted = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+    def __str__(self):
+        return "{}\nChild process's traceback:\n{}".format(
+            Exception.__str__(self), self.formatted)
+
+
+def tb_capture(func):
+    """A decorator which captures worker tracebacks.
+
+    Tracebacks in particular, are captured. Inspired by an example in
+    https://bugs.python.org/issue13831.
+
+    This decorator wraps rio-mucho worker tasks.
+
+    Parameters
+    ----------
+    func : function
+        A function to be decorated.
+
+    Returns
+    -------
+    func
+
+    """
+    @wraps(func)
+    def wrapper(*args, **kwds):
+        try:
+            return func(*args, **kwds)
+        except Exception:
+            raise MuchoChildError()
+    return wrapper
+
+
+def init_worker(inpaths, g_args):
+    """The multiprocessing worker initializer
+
+    Parameters
+    ----------
+    inpaths : list of str
+        A list of dataset paths.
+    g_args : dict
+        Global arguments.
+
+    Returns
+    -------
+    None
+
+    """
     global global_args
     global srcs
-    work_func = g_work_func
     global_args = g_args
-    try:
-        srcs = [rio.open(i) for i in inpaths]
-    except:
-        return
+    srcs = [rasterio.open(i) for i in inpaths]
 
-def manualRead(args):
-    try:
+
+class ReaderBase(object):
+    """Base class for readers"""
+
+    def __init__(self, user_func):
+        """Create new instance
+
+        Parameters
+        ----------
+        user_func : function
+            The user function with signature (data, window, ij, global_args)
+
+        Returns
+        -------
+        ReaderBase
+
+        """
+        self.user_func = user_func
+
+
+class manual_reader(ReaderBase):
+    """Warps the user's func in a manual reading pattern.
+    """
+
+    @tb_capture
+    def __call__(self, args):
+        """Execute the user function."""
         window, ij = args
-        return work_func(srcs, window, ij, global_args), window
-    except Exception as e:
-        traceback.print_exc()
-        raise e
+        return self.user_func(srcs, window, ij, global_args), window
 
-def arrayRead(args):
-    window, ij = args
-    try:
-        return work_func(utils.array_stack(
+
+class array_reader(ReaderBase):
+    """Wraps the user's func in an array reading pattern.
+    """
+
+    @tb_capture
+    def __call__(self, args):
+        """Execute the user function."""
+        window, ij = args
+        return self.user_func(utils.array_stack(
             [src.read(window=window) for src in srcs]),
             window, ij, global_args), window
-    except Exception as e:
-        traceback.print_exc()
-        raise e
 
-def simpleRead(args):
-    window, ij = args
-    try:
-        return work_func([src.read(window=window) for src in srcs], window, ij, global_args), window
-    except Exception as e:
-        traceback.print_exc()
-        raise e
 
-class RioMucho:
-    def __init__(self, inpaths, outpath, run_function, **kwargs):
+class simple_reader(ReaderBase):
+    """Wraps the user's func in a simple reading pattern.
+    """
+
+    @tb_capture
+    def __call__(self, args):
+        """Execute the user function."""
+        window, ij = args
+        return self.user_func([src.read(window=window) for src in srcs], window, ij, global_args), window
+
+
+class RioMucho(object):
+    """Maps a raster processing function over blocks of data.
+
+    Uses a multiprocessing pool to distribute the work.
+    """
+
+    def __init__(self, inpaths, outpath_or_dataset, run_function, mode='simple_read', windows=None, options=None, global_args=None):
+        """Create a new instance
+
+        Parameters
+        ----------
+        inpaths : list of str
+            A list of input dataset paths or identifiers.
+        outpath_or_dataset: str or dataset opened in 'w' mode
+            This parameter specifies the dataset to which results will be
+            written. If a str, a new dataset object will be created. Otherwise
+            the results will be written to the open dataset.
+        run_function : function
+            The function to be mapped.
+        mode : str, optional
+            One of ["simple_read", "manual_read", "array_read"].
+        windows : list, optional
+            A list of windows to work on. If not overridden, this will be the
+            block windows of the first source dataset.
+        options : dict
+            Creation options for the output dataset. If not overridden, this
+            will be the profile of the first source dataset.
+        global_args : dict
+            Extra arguments for the user function.
+
+        Returns
+        -------
+        RioMucho
+
+        """
         self.inpaths = inpaths
-        if not 'windows' in kwargs:
-            self.windows = utils.getWindows(inpaths[0])
-        else:
-            self.windows = kwargs['windows']
-
-        if not 'options' in kwargs:
-            self.options = utils.getOptions(inpaths[0])
-        else:
-            self.options = kwargs['options']
-
-        if not 'global_args' in kwargs:
-            self.global_args = {}
-        else:
-            self.global_args = kwargs['global_args']
-
-
-        if not 'mode' in kwargs or kwargs['mode'] == 'simple_read':
-            self.mode = 'simple_read'
-        elif kwargs['mode'] == 'array_read':
-            self.mode = 'array_read'
-        elif kwargs['mode'] == 'manual_read':
-            self.mode = 'manual_read'
-        else:
-            raise ValueError('mode must be one of: ["simple_read", "manual_read", "array_read"]')
-
-        self.outpath = outpath
+        self.outpath_or_dataset = outpath_or_dataset
         self.run_function = run_function
+
+        if mode not in ["simple_read", "manual_read", "array_read"]:
+            raise ValueError('mode must be one of: ["simple_read", "manual_read", "array_read"]')
+        else:
+            self.mode = mode
+
+        self.windows = windows or utils.getWindows(inpaths[0])
+        self.options = options or utils.getOptions(inpaths[0])
+        self.global_args = global_args or {}
 
     def __enter__(self):
         return self
+
     def __exit__(self, ext_t, ext_v, trace):
-        if ext_t:
-            traceback.print_exc()
+        pass
 
     def run(self, processes=4):
-
+        """TODO"""
         if processes == 1:
-            self.pool = MockTub(main_worker, (self.inpaths, self.run_function, self.global_args))
+            self.pool = MockTub(init_worker, (self.inpaths, self.global_args))
         else:
-            self.pool = Pool(processes, main_worker, (self.inpaths, self.run_function, self.global_args))
+            self.pool = Pool(processes, init_worker, (self.inpaths, self.global_args))
 
         self.options['transform'] = guard_transform(self.options['transform'])
 
         if self.mode == 'manual_read':
-            reader_worker = manualRead
+            reader_worker = manual_reader(self.run_function)  # manualRead
         elif self.mode == 'array_read':
-            reader_worker = arrayRead
+            reader_worker = array_reader(self.run_function)  # arrayRead
         else:
-            reader_worker = simpleRead
+            reader_worker = simple_reader(self.run_function)
+            # reader_worker = simpleRead
 
-        ## Open an output file, work through the function in parallel, and write out the data
-        with rio.open(self.outpath, 'w', **self.options) as dst:
+        if isinstance(self.outpath_or_dataset, rasterio.io.DatasetWriter):
+            destination = self.outpath_or_dataset
+        else:
+            destination = rasterio.open(self.outpath_or_dataset, 'w', **self.options)
+
+        # Open an output file, work through the function in parallel,
+        # and write out the data.
+        with destination as dst:
             for data, window in self.pool.imap_unordered(reader_worker, self.windows):
                 dst.write(data, window=window)
 
         self.pool.close()
         self.pool.join()
-        return
