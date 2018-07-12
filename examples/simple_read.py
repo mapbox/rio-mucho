@@ -12,6 +12,6 @@ def read_function(data, window, ij, g_args):
 
 # Open w/ simple read mode, and work in parallel.
 with riomucho.RioMucho(
-        ['/tmp/test_1.tif'], '/tmp/test_z_out.tif', read_function,
-        global_args={}) as rm:
+    ["/tmp/test_1.tif"], "/tmp/test_z_out.tif", read_function, global_args={}
+) as rm:
     rm.run(4)

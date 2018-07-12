@@ -7,8 +7,6 @@ from multiprocessing import Pool
 import sys
 import traceback
 
-import click
-import numpy as np
 import rasterio
 from rasterio.transform import guard_transform
 
@@ -129,12 +127,15 @@ class array_reader(ReaderBase):
     def __call__(self, args):
         """Execute the user function."""
         window, ij = args
-        return self.user_func(
-            utils.array_stack([src.read(window=window) for src in srcs]),
+        return (
+            self.user_func(
+                utils.array_stack([src.read(window=window) for src in srcs]),
+                window,
+                ij,
+                global_args,
+            ),
             window,
-            ij,
-            global_args,
-        ), window
+        )
 
 
 class simple_reader(ReaderBase):
@@ -145,9 +146,12 @@ class simple_reader(ReaderBase):
     def __call__(self, args):
         """Execute the user function."""
         window, ij = args
-        return self.user_func(
-            [src.read(window=window) for src in srcs], window, ij, global_args
-        ), window
+        return (
+            self.user_func(
+                [src.read(window=window) for src in srcs], window, ij, global_args
+            ),
+            window,
+        )
 
 
 class RioMucho(object):

@@ -1,6 +1,5 @@
 import riomucho
 import rasterio
-import click
 import numpy
 import pytest
 

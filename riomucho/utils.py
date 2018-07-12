@@ -3,7 +3,6 @@
 
 import rasterio
 import numpy as np
-import click
 
 
 def getOptions(input):
