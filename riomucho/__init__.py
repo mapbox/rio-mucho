@@ -109,7 +109,7 @@ class manual_reader(ReaderBase):
 
     @tb_capture
     def __call__(self, args):
-        """Excute the user function."""
+        """Execute the user function."""
         window, ij = args
         return self.user_func(srcs, window, ij, global_args), window
 
@@ -120,7 +120,7 @@ class array_reader(ReaderBase):
 
     @tb_capture
     def __call__(self, args):
-        """Excute the user function."""
+        """Execute the user function."""
         window, ij = args
         return self.user_func(utils.array_stack(
             [src.read(window=window) for src in srcs]),
@@ -133,7 +133,7 @@ class simple_reader(ReaderBase):
 
     @tb_capture
     def __call__(self, args):
-        """Excute the user function."""
+        """Execute the user function."""
         window, ij = args
         return self.user_func([src.read(window=window) for src in srcs], window, ij, global_args), window
 
