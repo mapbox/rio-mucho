@@ -25,15 +25,19 @@ class MuchoChildError(Exception):
 
     See https://bugs.python.org/issue13831
     """
+
     def __init__(self):
         """Wrap the last exception."""
         exc_type, exc_value, exc_tb = sys.exc_info()
         self.exception = exc_value
-        self.formatted = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        self.formatted = "".join(
+            traceback.format_exception(exc_type, exc_value, exc_tb)
+        )
 
     def __str__(self):
         return "{}\nChild process's traceback:\n{}".format(
-            Exception.__str__(self), self.formatted)
+            Exception.__str__(self), self.formatted
+        )
 
 
 def tb_capture(func):
@@ -54,12 +58,15 @@ def tb_capture(func):
     func
 
     """
+
     @wraps(func)
     def wrapper(*args, **kwds):
         try:
             return func(*args, **kwds)
+
         except Exception:
             raise MuchoChildError()
+
     return wrapper
 
 
@@ -122,9 +129,12 @@ class array_reader(ReaderBase):
     def __call__(self, args):
         """Execute the user function."""
         window, ij = args
-        return self.user_func(utils.array_stack(
-            [src.read(window=window) for src in srcs]),
-            window, ij, global_args), window
+        return self.user_func(
+            utils.array_stack([src.read(window=window) for src in srcs]),
+            window,
+            ij,
+            global_args,
+        ), window
 
 
 class simple_reader(ReaderBase):
@@ -135,7 +145,9 @@ class simple_reader(ReaderBase):
     def __call__(self, args):
         """Execute the user function."""
         window, ij = args
-        return self.user_func([src.read(window=window) for src in srcs], window, ij, global_args), window
+        return self.user_func(
+            [src.read(window=window) for src in srcs], window, ij, global_args
+        ), window
 
 
 class RioMucho(object):
@@ -144,7 +156,16 @@ class RioMucho(object):
     Uses a multiprocessing pool to distribute the work.
     """
 
-    def __init__(self, inpaths, outpath_or_dataset, run_function, mode='simple_read', windows=None, options=None, global_args=None):
+    def __init__(
+        self,
+        inpaths,
+        outpath_or_dataset,
+        run_function,
+        mode="simple_read",
+        windows=None,
+        options=None,
+        global_args=None,
+    ):
         """Create a new instance
 
         Parameters
@@ -178,7 +199,10 @@ class RioMucho(object):
         self.run_function = run_function
 
         if mode not in ["simple_read", "manual_read", "array_read"]:
-            raise ValueError('mode must be one of: ["simple_read", "manual_read", "array_read"]')
+            raise ValueError(
+                'mode must be one of: ["simple_read", "manual_read", "array_read"]'
+            )
+
         else:
             self.mode = mode
 
@@ -199,11 +223,11 @@ class RioMucho(object):
         else:
             self.pool = Pool(processes, init_worker, (self.inpaths, self.global_args))
 
-        self.options['transform'] = guard_transform(self.options['transform'])
+        self.options["transform"] = guard_transform(self.options["transform"])
 
-        if self.mode == 'manual_read':
+        if self.mode == "manual_read":
             reader_worker = manual_reader(self.run_function)
-        elif self.mode == 'array_read':
+        elif self.mode == "array_read":
             reader_worker = array_reader(self.run_function)
         else:
             reader_worker = simple_reader(self.run_function)
@@ -211,7 +235,7 @@ class RioMucho(object):
         if isinstance(self.outpath_or_dataset, rasterio.io.DatasetWriter):
             destination = self.outpath_or_dataset
         else:
-            destination = rasterio.open(self.outpath_or_dataset, 'w', **self.options)
+            destination = rasterio.open(self.outpath_or_dataset, "w", **self.options)
 
         # Open an output file, work through the function in parallel,
         # and write out the data.
