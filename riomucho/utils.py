@@ -1,20 +1,20 @@
 """TODO
 """
 
-import rasterio as rio
+import rasterio
 import numpy as np
 import click
 
 
 def getOptions(input):
     """TODO"""
-    with rio.open(input) as src:
+    with rasterio.open(input) as src:
         return src.profile
 
 
 def getWindows(input):
     """TODO"""
-    with rio.open(input) as src:
+    with rasterio.open(input) as src:
         return [[window, ij] for ij, window in src.block_windows()]
 
 

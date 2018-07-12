@@ -1,8 +1,13 @@
+"""Testing fixtures"""
+
 import rasterio
 from rasterio import Affine
 import numpy as np
+import pytest
+
 
 def makeTesting(output, size, windowsize, bands):
+    """Construct test fixture"""
     kwargs = {'count': bands,
         'crs': {'init': u'epsg:3857'},
         'dtype': 'uint8',
@@ -24,18 +29,18 @@ def makeTesting(output, size, windowsize, bands):
     with rasterio.open(output, 'w', **kwargs) as dst:
         dst.write(randArr)
 
-def makeRandomArrays(maxsize=100):
-    width = int(np.random.rand() * maxsize) + 1
-    height = int(np.random.rand() * maxsize) + 1
-    inputs = int(np.random.rand() * 4 + 1)
-    counts = [int(np.random.rand() * 3 + 1) for i in range(inputs)]
-    shape_expected = tuple((sum(counts * inputs), height, width))
-    array_list = [np.zeros((i, height, width)) for i in counts]
-    expected_shape = tuple((sum(counts), height, width))
 
-    return array_list, expected_shape
+@pytest.fixture(scope='session')
+def test_1_tif(tmpdir_factory):
+    """Source dataset number 1"""
+    fn = tmpdir_factory.mktemp("data").join("test_1.tif")
+    makeTesting(str(fn), 512, 256, 1)
+    return fn
 
 
-if __name__ == '__main__':
-    makeTesting()
-    makeRandomArrays
+@pytest.fixture(scope='session')
+def test_2_tif(tmpdir_factory):
+    """Source dataset number 2"""
+    fn = tmpdir_factory.mktemp("data").join("test_2.tif")
+    makeTesting(str(fn), 512, 256, 1)
+    return fn

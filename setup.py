@@ -1,3 +1,5 @@
+"""rio_mucho setup script."""
+
 import os
 from codecs import open as codecs_open
 from setuptools import setup, find_packages
@@ -9,6 +11,7 @@ with codecs_open("README.rst", encoding="utf-8") as f:
 
 
 def read(fname):
+    """Read a file's contents."""
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
