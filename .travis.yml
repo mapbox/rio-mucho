@@ -21,8 +21,8 @@ env:
     - PIP_FIND_LINKS=file://$HOME/.cache/pip/wheels
 
 python:
-  - 2.7
-  - 3.6
+  - "2.7"
+  - "3.6"
 
 cache:
   directories:
@@ -38,7 +38,8 @@ install:
   - pip install -e .[test]
 
 script:
-  - pre-commit run --all-files && python -m pytest -vv --cov riomucho --cov-report term-missing
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pre-commit run --all-files; fi
+  - python -m pytest -vv --cov riomucho --cov-report term-missing
 
 after_success:
   - coveralls
