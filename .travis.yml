@@ -32,12 +32,13 @@ cache:
 before_install:
   - pip install -U pip
   - pip install -r requirements.txt
+  - pip install pre-commit
 
 install:
   - pip install -e .[test]
 
 script:
-  - python -m pytest -vv --cov riomucho --cov-report term-missing
+  - pre-commit run --all-files && python -m pytest -vv --cov riomucho --cov-report term-missing
 
 after_success:
   - coveralls
