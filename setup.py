@@ -17,7 +17,7 @@ def read(fname):
 
 setup(
     name="rio-mucho",
-    version="1.0rc1",
+    version="1.0.0",
     description=u"Windowed multiprocessing wrapper for rasterio",
     long_description=long_description,
     classifiers=[
@@ -33,6 +33,6 @@ setup(
     packages=find_packages(exclude=["ez_setup", "examples", "tests"]),
     include_package_data=True,
     zip_safe=False,
-    install_requires=["numpy", "rasterio>=1.0rc5"],
+    install_requires=["numpy", "rasterio~=1.0"],
     extras_require={"test": ["pytest", "pytest-cov", "coveralls"]},
 )

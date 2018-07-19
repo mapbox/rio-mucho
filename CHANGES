@@ -1,10 +1,15 @@
+1.0.0 (2018-07-19)
+------------------
+
+The rio-mucho packages requires rasterio~=1.0. There are no other changes since
+1.0rc1.
+
 1.0rc1 (2018-07-13)
 ------------------
 
 :tada:
 
-- Support for Python versions 3.0-3.4 will be dropped in 1.0.0. These versions
-  do not have the fix for https://bugs.python.org/issue28699 and the
-  multiprocessing pool in riomucho can hang when exceptions are raised by a
-  worker.
+Support for Python versions 3.0-3.4 will be dropped in 1.0.0. These versions do
+not have the fix for https://bugs.python.org/issue28699 and the multiprocessing
+pool in riomucho can hang when exceptions are raised by a worker.
 
