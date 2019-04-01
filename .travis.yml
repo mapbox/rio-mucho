@@ -33,6 +33,7 @@ before_install:
   - pip install -U pip
   - pip install -r requirements.txt
   - pip install pre-commit
+  - pip install pytest~=3.10.0 pytest-cov
 
 install:
   - pip install -e .[test]
