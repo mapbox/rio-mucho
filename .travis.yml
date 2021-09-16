@@ -44,12 +44,3 @@ script:
 
 after_success:
   - coveralls
-
-deploy:
-
-  on:
-    tags: true
-
-  provider: pypi
-  user: mapboxci
-  distributions: "sdist bdist_wheel"
